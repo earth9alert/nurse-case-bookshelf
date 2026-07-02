@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #f4f1ea;
+  --bg-dark: #2c2416;
+  --surface: #fffef9;
+  --text: #1a1a1a;
+  --text-muted: #5c5347;
+  --accent: #c1666b;
+  --accent-dark: #9b4f54;
+  --wood: #8b6914;
+  --wood-light: #c4a35a;
+  --wood-dark: #5c4a1f;
+  --shelf-shadow: rgba(44, 36, 22, 0.25);
+  --radius: 12px;
+  --font: 'Sarabun', 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
