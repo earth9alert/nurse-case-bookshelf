@@ -18,9 +18,11 @@ const emptyCase = (): SurgicalCase => ({
   anatomy: '',
   anatomyImages: [],
   roomSetup: '',
+  roomSetupImages: [],
   equipment: { store: [], room: [], basket: [] },
   positioning: '',
   draping: '',
+  drapingImages: [],
   steps: [],
 })
 
@@ -151,6 +153,10 @@ export function CaseEditor({ initial, onSave, onCancel }: CaseEditorProps) {
             onChange={(e) => update('roomSetup', e.target.value)}
             placeholder="ขั้นตอนเตรียมห้องผ่าตัด"
           />
+          <AnatomyImageUpload
+            images={form.roomSetupImages}
+            onChange={(roomSetupImages) => update('roomSetupImages', roomSetupImages)}
+          />
         </fieldset>
 
         <fieldset className="equipment-fieldset">
@@ -182,6 +188,10 @@ export function CaseEditor({ initial, onSave, onCancel }: CaseEditorProps) {
         <fieldset>
           <legend>7. การปูผ้า</legend>
           <textarea rows={3} maxLength={MAX_LONG_TEXT} value={form.draping} onChange={(e) => update('draping', e.target.value)} />
+          <AnatomyImageUpload
+            images={form.drapingImages}
+            onChange={(drapingImages) => update('drapingImages', drapingImages)}
+          />
         </fieldset>
 
         <fieldset>

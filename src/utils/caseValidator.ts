@@ -39,8 +39,18 @@ export function validateCase(raw: unknown): SurgicalCase | null {
   if (!isStringArray(eq.room)) return null
   if (!isStringArray(eq.basket)) return null
 
+  const rawRoomImages = Array.isArray(o.roomSetupImages) ? o.roomSetupImages : []
+  const roomSetupImages = (rawRoomImages as unknown[])
+    .map(validateAnatomyImage)
+    .filter((img): img is AnatomyImage => img !== null)
+
   const rawImages = Array.isArray(o.anatomyImages) ? o.anatomyImages : []
   const anatomyImages = (rawImages as unknown[])
+    .map(validateAnatomyImage)
+    .filter((img): img is AnatomyImage => img !== null)
+
+  const rawDrapingImages = Array.isArray(o.drapingImages) ? o.drapingImages : []
+  const drapingImages = (rawDrapingImages as unknown[])
     .map(validateAnatomyImage)
     .filter((img): img is AnatomyImage => img !== null)
 
@@ -54,6 +64,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     anatomy: typeof o.anatomy === 'string' ? o.anatomy : '',
     anatomyImages,
     roomSetup: typeof o.roomSetup === 'string' ? o.roomSetup : '',
+    roomSetupImages,
     equipment: {
       store: eq.store as string[],
       room: eq.room as string[],
@@ -61,6 +72,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     },
     positioning: typeof o.positioning === 'string' ? o.positioning : '',
     draping: typeof o.draping === 'string' ? o.draping : '',
+    drapingImages,
     steps: isStringArray(o.steps) ? o.steps : [],
   }
 }

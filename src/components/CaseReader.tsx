@@ -27,7 +27,12 @@ function SectionContent({
         </>
       )
     case 'roomSetup':
-      return <TextBlock content={surgicalCase.roomSetup} />
+      return (
+        <>
+          <TextBlock content={surgicalCase.roomSetup} />
+          <AnatomyGallery images={surgicalCase.roomSetupImages ?? []} />
+        </>
+      )
     case 'equipment':
       return (
         <div className="equipment-grid">
@@ -39,7 +44,12 @@ function SectionContent({
     case 'positioning':
       return <TextBlock content={surgicalCase.positioning} />
     case 'draping':
-      return <TextBlock content={surgicalCase.draping} />
+      return (
+        <>
+          <TextBlock content={surgicalCase.draping} />
+          <AnatomyGallery images={surgicalCase.drapingImages ?? []} />
+        </>
+      )
     case 'steps':
       return (
         <ol className="steps-list">

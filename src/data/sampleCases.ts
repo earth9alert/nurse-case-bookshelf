@@ -11,6 +11,7 @@ export const sampleCases: SurgicalCase[] = [
     anatomy: 'Calot\'s triangle (Triangle of Calot)\n- Cystic duct\n- Cystic artery\n- Common hepatic duct\n- Liver edge\n\n⚠️ ระวัง common bile duct injury',
     anatomyImages: [],
     roomSetup: '1. เปิดเครื่องมือ lap ทั้งหมด + camera system\n2. ตั้ง insufflator CO₂ ที่ 12–15 mmHg\n3. วาง monitor 2 จอ (หัว-ท้าย)\n4. ตั้ง electrocautery + suction\n5. เปิด warming blanket\n6. ตรวจ checklist ก่อน patient เข้า',
+    roomSetupImages: [],
     equipment: {
       store: [
         'Trocar 10mm x2, 5mm x2',
@@ -39,6 +40,7 @@ export const sampleCases: SurgicalCase[] = [
     },
     positioning: 'Supine, arms tucked\n- Reverse Trendelenburg 15–20°\n- Head slightly left\n- Left side up slightly\n- Safety strap ที่ chest และ thighs\n- Foley catheter (optional)',
     draping: '1. ปู sterile drape จาก chest ถึง mid-thigh\n2. เปิด fenestrated drape ที่ umbilicus\n3. 4 quadrant drape สำหรับ port sites\n4. เก็บ cord ให้เรียบร้อย ไม่พันกับ trocar\n5. ตรวจ fenestration ตรงตำแหน่งก่อน surgeon เริ่ม',
+    drapingImages: [],
     steps: [
       'รับ patient + Time Out + ตรวจ consent',
       'Position + Drape ตาม protocol',
@@ -61,6 +63,7 @@ export const sampleCases: SurgicalCase[] = [
     anatomy: 'Knee joint structures\n- Femur, tibia, patella\n- Medial & lateral collateral ligaments\n- ACL (resected), PCL (depends on design)\n- Popliteal artery & peroneal nerve (posterior)',
     anatomyImages: [],
     roomSetup: '1. Orthopedic table + leg holder\n2. Tourniquet machine พร้อม cuff\n3. Implant tray + instrument set แยกตาม size\n4. C-arm (optional) ในห้อง\n5. Cell saver (if ordered)\n6. เปิด cement mixing system (if cemented)',
+    roomSetupImages: [],
     equipment: {
       store: [
         'TKA instrument set (complete)',
@@ -89,6 +92,7 @@ export const sampleCases: SurgicalCase[] = [
     },
     positioning: 'Supine on orthopedic table\n- Tourniquet ที่ proximal thigh\n- Foot of table removable\n- Bump under ipsilateral hip (optional)\n- Non-operative leg lowered\n- Arms on arm boards, padded',
     draping: '1. Stockinette + Webril wrap ขา operative side\n2. Tourniquet cuff → ปู cuff drape\n3. Extremity drape (circumferential)\n4. Stockinette ตัดเป็น fenestration\n5. Impervious U-drape รอบ incision site\n6. ห้าม lift ขาหลัง drape แล้ว',
+    drapingImages: [],
     steps: [
       'Time Out + antibiotic within 60 min',
       'Position + tourniquet test + drape',
@@ -111,6 +115,7 @@ export const sampleCases: SurgicalCase[] = [
     anatomy: 'Pelvic anatomy\n- Bladder (anterior, must be reflected)\n- Lower uterine segment\n- Broad ligament\n- Uterine vessels\n- Round ligament\n\n⚠️ ระวัง ureter และ bladder injury',
     anatomyImages: [],
     roomSetup: '1. OB table (tilt capability)\n2. Infant warmer พร้อมใช้\n3. Neonatal team standby\n4. Cell saver (if hemorrhage risk)\n5. Oxytocin drip พร้อม\n6. Additional instrument set (backup)',
+    roomSetupImages: [],
     equipment: {
       store: [
         'C-section instrument set',
@@ -139,6 +144,7 @@ export const sampleCases: SurgicalCase[] = [
     },
     positioning: 'Supine with left lateral tilt 15°\n- Wedge under right hip (prevent IVC compression)\n- Left arm out, right arm tucked\n- Foley catheter in place\n- Safety strap',
     draping: '1. Foley catheter → secure drainage\n2. Abdominal prep จาก xiphoid ถึง mid-thigh\n3. Towel clips at umbilicus\n4. Fenestrated drape\n5. เปิด infant warmer field แยก sterile zone\n6. Vertical drape for neonatal resuscitation access',
+    drapingImages: [],
     steps: [
       'Time Out + confirm fetal heart tone',
       'Position + Foley + prep & drape',

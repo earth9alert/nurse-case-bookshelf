@@ -20,9 +20,11 @@ export interface SurgicalCase {
   anatomy: string
   anatomyImages: AnatomyImage[]
   roomSetup: string
+  roomSetupImages: AnatomyImage[]
   equipment: Equipment
   positioning: string
   draping: string
+  drapingImages: AnatomyImage[]
   steps: string[]
 }
 
