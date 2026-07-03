@@ -17,23 +17,25 @@ export interface Category {
   icon: string
 }
 
+// Images keyed by section — every section can have photos
+export type SectionImages = Partial<Record<SectionKey, AnatomyImage[]>>
+
 export interface SurgicalCase {
   id: string
   categoryId: string
   title: string
   subtitle: string
   color: string
+  updatedAt: string          // ISO-8601 timestamp
   dx: string
   operation: string
   anatomy: string
-  anatomyImages: AnatomyImage[]
   roomSetup: string
-  roomSetupImages: AnatomyImage[]
   equipment: Equipment
   positioning: string
   draping: string
-  drapingImages: AnatomyImage[]
   steps: string[]
+  images: SectionImages      // all section photos in one place
 }
 
 export const UNCATEGORIZED_ID = '__uncategorized__'

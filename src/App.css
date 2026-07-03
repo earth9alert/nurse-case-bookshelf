@@ -1775,3 +1775,101 @@
     width: 140px;
   }
 }
+
+/* ── Case reader meta (updatedAt) ── */
+
+.case-reader__meta {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+  color: #fdf0f4;
+}
+
+/* Section nav image indicator dot */
+.section-nav__img-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f9c6d2;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+.section-nav__btn {
+  position: relative;
+}
+
+/* BookSpine date & image badge */
+.book-spine__date {
+  font-size: 0.55rem;
+  opacity: 0.7;
+  margin-top: auto;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.book-spine__img-badge {
+  font-size: 0.58rem;
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  padding: 1px 4px;
+  margin-top: 4px;
+  letter-spacing: 0;
+}
+
+/* ── Drag & Drop ── */
+
+.lobby__drag-handle {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: grab;
+  line-height: 1;
+  z-index: 3;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.lobby__door-wrapper:hover .lobby__drag-handle,
+.lobby__door-wrapper:focus-within .lobby__drag-handle {
+  opacity: 1;
+}
+
+/* On touch devices always show it */
+@media (hover: none) {
+  .lobby__drag-handle {
+    opacity: 0.6;
+  }
+}
+
+.lobby__drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Dragging state — card being dragged */
+.lobby__door-wrapper.dragging {
+  opacity: 0.35;
+  transform: scale(0.97);
+  transition: opacity 0.1s, transform 0.1s;
+}
+
+/* Drop target highlight */
+.lobby__door-wrapper.drag-over > .lobby__door {
+  outline: 3px dashed rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+  transform: translateY(-4px) scale(1.04);
+  box-shadow:
+    0 14px 0 color-mix(in srgb, var(--door-color) 55%, black),
+    0 18px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Hint text */
+.lobby__hint-drag {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}

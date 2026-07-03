@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react'
 import type { AnatomyImage } from '../types/case'
-import { MAX_IMAGES_PER_CASE, processImageFile } from '../utils/imageUpload'
+import { processImageFile } from '../utils/imageUpload'
 
 interface AnatomyImageUploadProps {
   images: AnatomyImage[]
+  label?: string
   onChange: (images: AnatomyImage[]) => void
 }
 
-export function AnatomyImageUpload({ images, onChange }: AnatomyImageUploadProps) {
+export function AnatomyImageUpload({ images, label = '📷 อัปโหลดรูป', onChange }: AnatomyImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -19,20 +20,7 @@ export function AnatomyImageUpload({ images, onChange }: AnatomyImageUploadProps
 
     try {
       const next = [...images]
-      const remaining = MAX_IMAGES_PER_CASE - next.length
-      if (remaining <= 0) {
-        setError(`อัปโหลดได้สูงสุด ${MAX_IMAGES_PER_CASE} รูปต่อเคส`)
-        return
-      }
-
-      const filesToProcess = Array.from(files).slice(0, remaining)
-      if (filesToProcess.length < files.length) {
-        setError(
-          `อัปโหลดได้อีก ${remaining} รูปเท่านั้น (สูงสุด ${MAX_IMAGES_PER_CASE} รูปต่อเคส) — เพิ่มแค่ ${filesToProcess.length} รูปแรก`,
-        )
-      }
-
-      for (const file of filesToProcess) {
+      for (const file of Array.from(files)) {
         const dataUrl = await processImageFile(file)
         next.push({
           id: crypto.randomUUID(),
@@ -66,9 +54,12 @@ export function AnatomyImageUpload({ images, onChange }: AnatomyImageUploadProps
           disabled={loading}
           onClick={() => inputRef.current?.click()}
         >
-          {loading ? 'กำลังอัปโหลด...' : '📷 อัปโหลดรูป Anatomy'}
+          {loading ? 'กำลังอัปโหลด...' : label}
         </button>
-        <span className="anatomy-upload__hint">JPG, PNG, WebP, GIF — บีบอัดอัตโนมัติ</span>
+        <span className="anatomy-upload__hint">
+          JPG, PNG, WebP, GIF · บีบอัดอัตโนมัติ
+          {images.length > 0 && ` · ${images.length} รูป`}
+        </span>
         <input
           ref={inputRef}
           type="file"
@@ -85,12 +76,12 @@ export function AnatomyImageUpload({ images, onChange }: AnatomyImageUploadProps
         <ul className="anatomy-upload__list">
           {images.map((img) => (
             <li key={img.id} className="anatomy-upload__item">
-              <img src={img.dataUrl} alt={img.caption || 'รูป anatomy'} />
+              <img src={img.dataUrl} alt={img.caption || 'รูป'} />
               <input
                 type="text"
                 value={img.caption}
                 onChange={(e) => updateCaption(img.id, e.target.value)}
-                placeholder="คำอธิบายรูป (เช่น Calot's triangle)"
+                placeholder="คำอธิบายรูป"
               />
               <button type="button" className="btn-remove-image" onClick={() => removeImage(img.id)}>
                 ลบรูป

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnatomyImageUpload } from './AnatomyImageUpload'
-import type { Category, SurgicalCase } from '../types/case'
-import { UNCATEGORIZED_ID } from '../types/case'
+import type { AnatomyImage, Category, SectionKey, SurgicalCase } from '../types/case'
+import { SECTIONS, UNCATEGORIZED_ID } from '../types/case'
 
 interface CaseEditorProps {
   initial?: SurgicalCase
@@ -16,18 +16,17 @@ const emptyCase = (categoryId: string): SurgicalCase => ({
   categoryId,
   title: '',
   subtitle: '',
-  color: '#457b9d',
+  color: '#c2607a',
+  updatedAt: new Date().toISOString(),
   dx: '',
   operation: '',
   anatomy: '',
-  anatomyImages: [],
   roomSetup: '',
-  roomSetupImages: [],
   equipment: { store: [], room: [], basket: [] },
   positioning: '',
   draping: '',
-  drapingImages: [],
   steps: [],
+  images: {},
 })
 
 const MAX_SHORT_TEXT = 200
@@ -35,15 +34,15 @@ const MAX_LONG_TEXT = 5000
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
 
 function linesToArray(text: string) {
-  return text
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
+  return text.split('\n').map((l) => l.trim()).filter(Boolean)
 }
 
 function arrayToLines(arr: string[]) {
   return arr.join('\n')
 }
+
+// Sections that support image upload (all except equipment which has its own UI)
+const IMAGE_SECTIONS: SectionKey[] = ['dx', 'operation', 'anatomy', 'roomSetup', 'equipment', 'positioning', 'draping', 'steps']
 
 export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onCancel }: CaseEditorProps) {
   const [form, setForm] = useState<SurgicalCase>(initial ?? emptyCase(defaultCategoryId ?? UNCATEGORIZED_ID))
@@ -56,12 +55,22 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  const updateImages = (sectionKey: SectionKey, imgs: AnatomyImage[]) => {
+    setForm((prev) => ({
+      ...prev,
+      images: { ...prev.images, [sectionKey]: imgs },
+    }))
+  }
+
+  const sectionImages = (key: SectionKey): AnatomyImage[] => form.images[key] ?? []
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const color = HEX_COLOR_RE.test(form.color) ? form.color : '#457b9d'
+    const color = HEX_COLOR_RE.test(form.color) ? form.color : '#c2607a'
     onSave({
       ...form,
       color,
+      updatedAt: new Date().toISOString(),
       equipment: {
         store: linesToArray(storeText),
         room: linesToArray(roomText),
@@ -70,6 +79,9 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
       steps: linesToArray(stepsText),
     })
   }
+
+  // Suppress unused warning — IMAGE_SECTIONS used below
+  void IMAGE_SECTIONS
 
   return (
     <div className="editor-overlay" role="dialog" aria-modal="true" aria-labelledby="editor-title">
@@ -103,126 +115,118 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
           </label>
           <label>
             หมวดหมู่
-            <select
-              value={form.categoryId}
-              onChange={(e) => update('categoryId', e.target.value)}
-            >
+            <select value={form.categoryId} onChange={(e) => update('categoryId', e.target.value)}>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
-                </option>
+                <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
               ))}
             </select>
           </label>
           <label>
             สีปกหนังสือ
-            <input
-              type="color"
-              value={form.color}
-              onChange={(e) => update('color', e.target.value)}
-            />
+            <input type="color" value={form.color} onChange={(e) => update('color', e.target.value)} />
           </label>
         </div>
 
-        <fieldset>
-          <legend>1. Dx — การวินิจฉัย</legend>
-          <textarea
-            rows={4}
-            maxLength={MAX_LONG_TEXT}
-            value={form.dx}
-            onChange={(e) => update('dx', e.target.value)}
-            placeholder="การวินิจฉัย อาการ และผลตรวจ"
-          />
-        </fieldset>
+        {/* Section labels from SECTIONS for consistency */}
+        {SECTIONS.map((section) => {
+          const key = section.key
+          const imgs = sectionImages(key)
+          const uploadBlock = (
+            <AnatomyImageUpload
+              images={imgs}
+              label={`📷 เพิ่มรูป (${imgs.length} รูป)`}
+              onChange={(next) => updateImages(key, next)}
+            />
+          )
 
-        <fieldset>
-          <legend>2. Operation — หัตถการ</legend>
-          <textarea
-            rows={4}
-            maxLength={MAX_LONG_TEXT}
-            value={form.operation}
-            onChange={(e) => update('operation', e.target.value)}
-            placeholder="รายละเอียดหัตถการ approach ports เวลา"
-          />
-        </fieldset>
+          if (key === 'dx') return (
+            <fieldset key={key}>
+              <legend>1. Dx — การวินิจฉัย</legend>
+              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.dx}
+                onChange={(e) => update('dx', e.target.value)} placeholder="การวินิจฉัย อาการ และผลตรวจ" />
+              {uploadBlock}
+            </fieldset>
+          )
 
-        <fieldset>
-          <legend>3. Anatomy — กายวิภาค</legend>
-          <textarea
-            rows={4}
-            maxLength={MAX_LONG_TEXT}
-            value={form.anatomy}
-            onChange={(e) => update('anatomy', e.target.value)}
-            placeholder="โครงสร้างที่เกี่ยวข้อง จุดที่ต้องระวัง"
-          />
-          <AnatomyImageUpload
-            images={form.anatomyImages}
-            onChange={(anatomyImages) => update('anatomyImages', anatomyImages)}
-          />
-        </fieldset>
+          if (key === 'operation') return (
+            <fieldset key={key}>
+              <legend>2. Operation — หัตถการ</legend>
+              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.operation}
+                onChange={(e) => update('operation', e.target.value)} placeholder="รายละเอียดหัตถการ approach ports เวลา" />
+              {uploadBlock}
+            </fieldset>
+          )
 
-        <fieldset>
-          <legend>4. การจัดห้อง</legend>
-          <textarea
-            rows={4}
-            maxLength={MAX_LONG_TEXT}
-            value={form.roomSetup}
-            onChange={(e) => update('roomSetup', e.target.value)}
-            placeholder="ขั้นตอนเตรียมห้องผ่าตัด"
-          />
-          <AnatomyImageUpload
-            images={form.roomSetupImages}
-            onChange={(roomSetupImages) => update('roomSetupImages', roomSetupImages)}
-          />
-        </fieldset>
+          if (key === 'anatomy') return (
+            <fieldset key={key}>
+              <legend>3. Anatomy — กายวิภาค</legend>
+              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.anatomy}
+                onChange={(e) => update('anatomy', e.target.value)} placeholder="โครงสร้างที่เกี่ยวข้อง จุดที่ต้องระวัง" />
+              {uploadBlock}
+            </fieldset>
+          )
 
-        <fieldset className="equipment-fieldset">
-          <legend>5. อุปกรณ์</legend>
-          <label>
-            ของใน Store (หนึ่งรายการต่อบรรทัด)
-            <textarea rows={4} maxLength={MAX_LONG_TEXT} value={storeText} onChange={(e) => setStoreText(e.target.value)} />
-          </label>
-          <label>
-            ของในห้องเวช
-            <textarea rows={4} maxLength={MAX_LONG_TEXT} value={roomText} onChange={(e) => setRoomText(e.target.value)} />
-          </label>
-          <label>
-            ของในตะกร้า
-            <textarea rows={4} maxLength={MAX_LONG_TEXT} value={basketText} onChange={(e) => setBasketText(e.target.value)} />
-          </label>
-        </fieldset>
+          if (key === 'roomSetup') return (
+            <fieldset key={key}>
+              <legend>4. การจัดห้อง</legend>
+              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.roomSetup}
+                onChange={(e) => update('roomSetup', e.target.value)} placeholder="ขั้นตอนเตรียมห้องผ่าตัด" />
+              {uploadBlock}
+            </fieldset>
+          )
 
-        <fieldset>
-          <legend>6. การจัดท่า</legend>
-          <textarea
-            rows={3}
-            maxLength={MAX_LONG_TEXT}
-            value={form.positioning}
-            onChange={(e) => update('positioning', e.target.value)}
-          />
-        </fieldset>
+          if (key === 'equipment') return (
+            <fieldset key={key} className="equipment-fieldset">
+              <legend>5. อุปกรณ์</legend>
+              <label>
+                ของใน Store (หนึ่งรายการต่อบรรทัด)
+                <textarea rows={4} maxLength={MAX_LONG_TEXT} value={storeText} onChange={(e) => setStoreText(e.target.value)} />
+              </label>
+              <label>
+                ของในห้องเวช
+                <textarea rows={4} maxLength={MAX_LONG_TEXT} value={roomText} onChange={(e) => setRoomText(e.target.value)} />
+              </label>
+              <label>
+                ของในตะกร้า
+                <textarea rows={4} maxLength={MAX_LONG_TEXT} value={basketText} onChange={(e) => setBasketText(e.target.value)} />
+              </label>
+              {uploadBlock}
+            </fieldset>
+          )
 
-        <fieldset>
-          <legend>7. การปูผ้า</legend>
-          <textarea rows={3} maxLength={MAX_LONG_TEXT} value={form.draping} onChange={(e) => update('draping', e.target.value)} />
-          <AnatomyImageUpload
-            images={form.drapingImages}
-            onChange={(drapingImages) => update('drapingImages', drapingImages)}
-          />
-        </fieldset>
+          if (key === 'positioning') return (
+            <fieldset key={key}>
+              <legend>6. การจัดท่า</legend>
+              <textarea rows={3} maxLength={MAX_LONG_TEXT} value={form.positioning}
+                onChange={(e) => update('positioning', e.target.value)} />
+              {uploadBlock}
+            </fieldset>
+          )
 
-        <fieldset>
-          <legend>8. Step — ขั้นตอน (หนึ่ง step ต่อบรรทัด)</legend>
-          <textarea rows={6} maxLength={MAX_LONG_TEXT} value={stepsText} onChange={(e) => setStepsText(e.target.value)} />
-        </fieldset>
+          if (key === 'draping') return (
+            <fieldset key={key}>
+              <legend>7. การปูผ้า</legend>
+              <textarea rows={3} maxLength={MAX_LONG_TEXT} value={form.draping}
+                onChange={(e) => update('draping', e.target.value)} />
+              {uploadBlock}
+            </fieldset>
+          )
+
+          if (key === 'steps') return (
+            <fieldset key={key}>
+              <legend>8. Step — ขั้นตอน (หนึ่ง step ต่อบรรทัด)</legend>
+              <textarea rows={6} maxLength={MAX_LONG_TEXT} value={stepsText}
+                onChange={(e) => setStepsText(e.target.value)} />
+              {uploadBlock}
+            </fieldset>
+          )
+
+          return null
+        })}
 
         <footer className="editor-form__footer">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
-            ยกเลิก
-          </button>
-          <button type="submit" className="btn-primary">
-            บันทึก
-          </button>
+          <button type="button" className="btn-secondary" onClick={onCancel}>ยกเลิก</button>
+          <button type="submit" className="btn-primary">บันทึก</button>
         </footer>
       </form>
     </div>

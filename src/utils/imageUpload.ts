@@ -3,8 +3,6 @@ const MAX_INPUT_MB = 10
 const MAX_WIDTH = 1400
 const JPEG_QUALITY = 0.82
 
-export const MAX_IMAGES_PER_CASE = 10
-
 export function isAcceptedImage(file: File) {
   return ACCEPTED_TYPES.includes(file.type)
 }

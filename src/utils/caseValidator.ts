@@ -1,4 +1,4 @@
-import type { AnatomyImage, SurgicalCase } from '../types/case'
+import type { AnatomyImage, SectionImages, SectionKey, SurgicalCase } from '../types/case'
 import { UNCATEGORIZED_ID } from '../types/case'
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
@@ -25,13 +25,24 @@ function validateAnatomyImage(img: unknown): AnatomyImage | null {
   return { id: o.id, caption: o.caption, dataUrl: o.dataUrl }
 }
 
+function validateImageArray(raw: unknown): AnatomyImage[] {
+  if (!Array.isArray(raw)) return []
+  return (raw as unknown[])
+    .map(validateAnatomyImage)
+    .filter((img): img is AnatomyImage => img !== null)
+}
+
+const SECTION_KEYS: SectionKey[] = [
+  'dx', 'operation', 'anatomy', 'roomSetup',
+  'equipment', 'positioning', 'draping', 'steps',
+]
+
 export function validateCase(raw: unknown): SurgicalCase | null {
   if (typeof raw !== 'object' || raw === null) return null
   const o = raw as Record<string, unknown>
 
   if (typeof o.id !== 'string' || !o.id) return null
   if (typeof o.title !== 'string' || !o.title.trim()) return null
-  if (typeof o.subtitle !== 'string') return null
   if (!isValidColor(o.color)) return null
 
   const eq = o.equipment as Record<string, unknown> | undefined
@@ -40,20 +51,30 @@ export function validateCase(raw: unknown): SurgicalCase | null {
   if (!isStringArray(eq.room)) return null
   if (!isStringArray(eq.basket)) return null
 
-  const rawRoomImages = Array.isArray(o.roomSetupImages) ? o.roomSetupImages : []
-  const roomSetupImages = (rawRoomImages as unknown[])
-    .map(validateAnatomyImage)
-    .filter((img): img is AnatomyImage => img !== null)
+  // ── Migrate old per-field images → new images map ──────────────────────
+  const rawImages = typeof o.images === 'object' && o.images !== null
+    ? o.images as Record<string, unknown>
+    : {}
 
-  const rawImages = Array.isArray(o.anatomyImages) ? o.anatomyImages : []
-  const anatomyImages = (rawImages as unknown[])
-    .map(validateAnatomyImage)
-    .filter((img): img is AnatomyImage => img !== null)
+  const images: SectionImages = {}
+  for (const key of SECTION_KEYS) {
+    const fromNew = rawImages[key]
+    images[key] = validateImageArray(fromNew)
+  }
 
-  const rawDrapingImages = Array.isArray(o.drapingImages) ? o.drapingImages : []
-  const drapingImages = (rawDrapingImages as unknown[])
-    .map(validateAnatomyImage)
-    .filter((img): img is AnatomyImage => img !== null)
+  // Back-compat: lift old flat fields into images map if new map is empty
+  if (!images.anatomy?.length) {
+    const legacy = validateImageArray(o.anatomyImages)
+    if (legacy.length) images.anatomy = legacy
+  }
+  if (!images.roomSetup?.length) {
+    const legacy = validateImageArray(o.roomSetupImages)
+    if (legacy.length) images.roomSetup = legacy
+  }
+  if (!images.draping?.length) {
+    const legacy = validateImageArray(o.drapingImages)
+    if (legacy.length) images.draping = legacy
+  }
 
   return {
     id: o.id,
@@ -61,12 +82,11 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     title: o.title,
     subtitle: typeof o.subtitle === 'string' ? o.subtitle : '',
     color: o.color as string,
+    updatedAt: typeof o.updatedAt === 'string' ? o.updatedAt : new Date().toISOString(),
     dx: typeof o.dx === 'string' ? o.dx : '',
     operation: typeof o.operation === 'string' ? o.operation : '',
     anatomy: typeof o.anatomy === 'string' ? o.anatomy : '',
-    anatomyImages,
     roomSetup: typeof o.roomSetup === 'string' ? o.roomSetup : '',
-    roomSetupImages,
     equipment: {
       store: eq.store as string[],
       room: eq.room as string[],
@@ -74,7 +94,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     },
     positioning: typeof o.positioning === 'string' ? o.positioning : '',
     draping: typeof o.draping === 'string' ? o.draping : '',
-    drapingImages,
     steps: isStringArray(o.steps) ? o.steps : [],
+    images,
   }
 }

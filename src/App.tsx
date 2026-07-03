@@ -16,7 +16,7 @@ type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory'
 
 function App() {
   const { cases, resetToSample, upsertCase, deleteCase, importCases } = useCases()
-  const { categories, upsertCategory, deleteCategory } = useCategories()
+  const { categories, upsertCategory, deleteCategory, reorderCategories } = useCategories()
 
   const [view, setView] = useState<View>('lobby')
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
@@ -186,6 +186,7 @@ function App() {
               onAddCategory={() => { setEditingCategory(undefined); setView('editCategory') }}
               onEditCategory={(cat) => { setEditingCategory(cat); setView('editCategory') }}
               onDeleteCategory={handleDeleteCategory}
+              onReorder={reorderCategories}
             />
           )}
         </main>

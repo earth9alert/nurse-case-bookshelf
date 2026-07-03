@@ -68,5 +68,14 @@ export function useCategories() {
     setCategories(DEFAULT_CATEGORIES)
   }, [])
 
-  return { categories, upsertCategory, deleteCategory, resetToDefault }
+  const reorderCategories = useCallback((fromIndex: number, toIndex: number) => {
+    setCategories((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIndex, 1)
+      next.splice(toIndex, 0, moved)
+      return next
+    })
+  }, [])
+
+  return { categories, upsertCategory, deleteCategory, resetToDefault, reorderCategories }
 }
