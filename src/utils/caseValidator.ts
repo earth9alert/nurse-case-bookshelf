@@ -1,4 +1,5 @@
 import type { AnatomyImage, SurgicalCase } from '../types/case'
+import { UNCATEGORIZED_ID } from '../types/case'
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
 const DATA_IMAGE_RE = /^data:image\/(jpeg|png|webp|gif);base64,/
@@ -56,6 +57,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
 
   return {
     id: o.id,
+    categoryId: typeof o.categoryId === 'string' && o.categoryId ? o.categoryId : UNCATEGORIZED_ID,
     title: o.title,
     subtitle: typeof o.subtitle === 'string' ? o.subtitle : '',
     color: o.color as string,

@@ -13,18 +13,26 @@ type ImportState =
   | { status: 'error'; message: string }
   | { status: 'success'; count: number }
 
+type ExportState =
+  | { status: 'idle' }
+  | { status: 'done'; fileName: string }
+
 export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importState, setImportState] = useState<ImportState>({ status: 'idle' })
+  const [exportState, setExportState] = useState<ExportState>({ status: 'idle' })
 
   const handleExport = () => {
-    exportBackup(cases)
+    const fileName = exportBackup(cases)
+    setImportState({ status: 'idle' }) // dismiss any import toast
+    setExportState({ status: 'done', fileName })
+    // Auto-dismiss after 8s
+    setTimeout(() => setExportState({ status: 'idle' }), 8000)
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    // Reset input so same file can be selected again
     e.target.value = ''
 
     const result = await importBackup(file)
@@ -83,7 +91,27 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
         />
       </div>
 
-      {/* Confirm dialog */}
+      {/* Export success toast */}
+      {exportState.status === 'done' && (
+        <div className="backup-toast backup-toast--export" role="status">
+          <div className="backup-toast__body">
+            <span className="backup-toast__title">💾 บันทึกไฟล์แล้ว</span>
+            <span className="backup-toast__filename">{exportState.fileName}</span>
+            <span className="backup-toast__hint">
+              ดูได้ที่โฟลเดอร์ Downloads ในเครื่องของคุณ
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setExportState({ status: 'idle' })}
+            aria-label="ปิด"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Import confirm dialog */}
       {importState.status === 'confirm' && (
         <div className="backup-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="backup-confirm-title">
           <div className="backup-modal">
@@ -95,9 +123,7 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
                 <span className="backup-modal__skipped"> (ข้ามไป {importState.skipped} รายการที่ไม่ถูกต้อง)</span>
               )}
             </p>
-            <p className="backup-modal__warning">
-              เลือกวิธีนำเข้า:
-            </p>
+            <p className="backup-modal__warning">เลือกวิธีนำเข้า:</p>
             <div className="backup-modal__options">
               <button type="button" className="btn-import-merge" onClick={handleConfirmMerge}>
                 ผสมกับข้อมูลเดิม
@@ -115,7 +141,7 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
         </div>
       )}
 
-      {/* Error */}
+      {/* Import error */}
       {importState.status === 'error' && (
         <div className="backup-toast backup-toast--error" role="alert">
           <span>❌ {importState.message}</span>
@@ -123,7 +149,7 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
         </div>
       )}
 
-      {/* Success */}
+      {/* Import success */}
       {importState.status === 'success' && (
         <div className="backup-toast backup-toast--success" role="status">
           <span>✅ นำเข้า {importState.count} เคสเรียบร้อยแล้ว</span>

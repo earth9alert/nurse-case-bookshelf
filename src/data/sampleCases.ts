@@ -3,6 +3,7 @@ import type { SurgicalCase } from '../types/case'
 export const sampleCases: SurgicalCase[] = [
   {
     id: 'lap-chole',
+    categoryId: 'general',
     title: 'Laparoscopic Cholecystectomy',
     subtitle: 'ตัดถุงน้ำดีแบบส่องกล้อง',
     color: '#2d6a4f',
@@ -55,6 +56,7 @@ export const sampleCases: SurgicalCase[] = [
   },
   {
     id: 'tka',
+    categoryId: 'ortho',
     title: 'Total Knee Arthroplasty',
     subtitle: 'เปลี่ยนข้อเข่าเทียมทั้งหมด',
     color: '#1d3557',
@@ -107,6 +109,7 @@ export const sampleCases: SurgicalCase[] = [
   },
   {
     id: 'c-section',
+    categoryId: 'ob',
     title: 'Cesarean Section',
     subtitle: 'ผ่าตัดคลอด',
     color: '#9b2226',

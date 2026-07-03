@@ -11,7 +11,7 @@ export interface BackupFile {
 
 // ── Export ───────────────────────────────────────────────────────────────────
 
-export function exportBackup(cases: SurgicalCase[]): void {
+export function exportBackup(cases: SurgicalCase[]): string {
   const payload: BackupFile = {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
@@ -26,13 +26,17 @@ export function exportBackup(cases: SurgicalCase[]): void {
     .toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' })
     .replace(/\//g, '-')
 
+  const fileName = `nurse-cases-backup-${dateStr}.json`
+
   const a = document.createElement('a')
   a.href = url
-  a.download = `nurse-cases-backup-${dateStr}.json`
+  a.download = fileName
   a.click()
 
   // Clean up object URL after a short delay
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
+
+  return fileName
 }
 
 // ── Import ───────────────────────────────────────────────────────────────────

@@ -10,8 +10,16 @@ export interface AnatomyImage {
   dataUrl: string
 }
 
+export interface Category {
+  id: string
+  name: string
+  color: string
+  icon: string
+}
+
 export interface SurgicalCase {
   id: string
+  categoryId: string
   title: string
   subtitle: string
   color: string
@@ -27,6 +35,18 @@ export interface SurgicalCase {
   drapingImages: AnatomyImage[]
   steps: string[]
 }
+
+export const UNCATEGORIZED_ID = '__uncategorized__'
+
+export const DEFAULT_CATEGORIES: Category[] = [
+  { id: 'general', name: 'General Surgery', color: '#2d6a4f', icon: '🔪' },
+  { id: 'ortho', name: 'Orthopedics', color: '#1d3557', icon: '🦴' },
+  { id: 'ob', name: 'OB/GYN', color: '#9b2226', icon: '👶' },
+  { id: 'neuro', name: 'Neurosurgery', color: '#4a4e69', icon: '🧠' },
+  { id: 'cardio', name: 'Cardiothoracic', color: '#c1666b', icon: '❤️' },
+  { id: 'uro', name: 'Urology', color: '#457b9d', icon: '🫘' },
+  { id: UNCATEGORIZED_ID, name: 'ไม่ระบุหมวด', color: '#8b6914', icon: '📄' },
+]
 
 export type SectionKey =
   | 'dx'

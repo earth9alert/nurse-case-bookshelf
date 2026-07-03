@@ -3,17 +3,28 @@ import { Bookshelf } from './components/Bookshelf'
 import { CaseEditor } from './components/CaseEditor'
 import { CaseReader } from './components/CaseReader'
 import { BackupRestore } from './components/BackupRestore'
+import { CategoryLobby } from './components/CategoryLobby'
+import { CategoryEditor } from './components/CategoryEditor'
 import { useCases } from './hooks/useCases'
-import type { SurgicalCase } from './types/case'
+import { useCategories } from './hooks/useCategories'
+import type { Category, SurgicalCase } from './types/case'
+import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
 
-type View = 'shelf' | 'read' | 'edit'
+type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory'
 
 function App() {
   const { cases, resetToSample, upsertCase, deleteCase, importCases } = useCases()
-  const [view, setView] = useState<View>('shelf')
+  const { categories, upsertCategory, deleteCategory } = useCategories()
+
+  const [view, setView] = useState<View>('lobby')
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
   const [selectedCase, setSelectedCase] = useState<SurgicalCase | null>(null)
   const [editingCase, setEditingCase] = useState<SurgicalCase | undefined>(undefined)
+  const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined)
+
+  const activeCategory = categories.find((c) => c.id === activeCategoryId) ?? null
+  const roomCases = cases.filter((c) => c.categoryId === activeCategoryId)
 
   const openCase = (surgicalCase: SurgicalCase) => {
     setSelectedCase(surgicalCase)
@@ -27,23 +38,48 @@ function App() {
 
   const handleSave = (surgicalCase: SurgicalCase) => {
     upsertCase(surgicalCase)
-    setView('shelf')
+    // Return to the room the case belongs to
+    setActiveCategoryId(surgicalCase.categoryId)
+    setView('room')
     setEditingCase(undefined)
+  }
+
+  const handleDeleteCategory = (id: string) => {
+    // Move all cases in deleted category to uncategorized
+    cases
+      .filter((c) => c.categoryId === id)
+      .forEach((c) => upsertCase({ ...c, categoryId: UNCATEGORIZED_ID }))
+    deleteCategory(id)
+  }
+
+  const goLobby = () => {
+    setView('lobby')
+    setActiveCategoryId(null)
   }
 
   return (
     <div className="app">
       <header className="app-header">
         <div className="app-header__brand">
-          <span className="app-header__icon" aria-hidden="true">
-            📚
-          </span>
+          {view !== 'lobby' && (
+            <button type="button" className="btn-back-lobby" onClick={goLobby} aria-label="กลับหน้าหลัก">
+              ←
+            </button>
+          )}
+          <span className="app-header__icon" aria-hidden="true">📚</span>
           <div>
             <h1>อ่านก่อนเข้าเคส</h1>
-            <p>ชั้นวางหนังสือสำหรับพยาบาลห้องผ่าตัด</p>
+            <p>
+              {view === 'lobby' && 'เลือกห้องที่ต้องการ'}
+              {view === 'room' && activeCategory && `${activeCategory.icon} ${activeCategory.name}`}
+              {view === 'read' && selectedCase?.subtitle}
+              {view === 'edit' && (editingCase ? 'แก้ไขเคส' : 'เพิ่มเคสใหม่')}
+              {view === 'editCategory' && (editingCategory ? 'แก้ไขห้อง' : 'เพิ่มห้องใหม่')}
+            </p>
           </div>
         </div>
-        {view === 'shelf' && (
+
+        {view === 'room' && (
           <div className="app-header__actions">
             <BackupRestore cases={cases} onImport={importCases} />
             <button type="button" className="btn-secondary" onClick={() => openEditor()}>
@@ -60,47 +96,74 @@ function App() {
             </button>
           </div>
         )}
+
+        {view === 'lobby' && (
+          <div className="app-header__actions">
+            <BackupRestore cases={cases} onImport={importCases} />
+          </div>
+        )}
       </header>
 
-      {view === 'shelf' && (
+      {/* ── Lobby ── */}
+      {view === 'lobby' && (
+        <main className="app-main">
+          <CategoryLobby
+            categories={categories}
+            cases={cases}
+            onEnterRoom={(id) => { setActiveCategoryId(id); setView('room') }}
+            onAddCategory={() => { setEditingCategory(undefined); setView('editCategory') }}
+            onEditCategory={(cat) => { setEditingCategory(cat); setView('editCategory') }}
+            onDeleteCategory={handleDeleteCategory}
+          />
+        </main>
+      )}
+
+      {/* ── Room (bookshelf) ── */}
+      {view === 'room' && activeCategoryId && (
         <main className="app-main">
           <p className="shelf-hint">เลือกหนังสือเพื่ออ่านก่อนเข้าเคส — ครบ 8 หัวข้อ</p>
-          <Bookshelf cases={cases} onSelectCase={openCase} />
+          <Bookshelf cases={roomCases} onSelectCase={openCase} />
 
           <section className="case-list">
-            <h2>รายการเคสทั้งหมด</h2>
-            <ul>
-              {cases.map((c) => (
-                <li key={c.id}>
-                  <button type="button" className="case-list__item" onClick={() => openCase(c)}>
-                    <span className="case-list__dot" style={{ background: c.color }} />
-                    <span>
-                      <strong>{c.title}</strong>
-                      <small>{c.subtitle}</small>
-                    </span>
-                  </button>
-                  <div className="case-list__actions">
-                    <button
-                      type="button"
-                      onClick={() => openEditor(c)}
-                      aria-label={`แก้ไขเคส ${c.title}`}
-                    >
-                      แก้ไข
+            <h2>รายการเคสในห้องนี้</h2>
+            {roomCases.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>
+                ยังไม่มีเคส — กด <strong>+ เพิ่มเคส</strong> เพื่อเริ่มต้น
+              </p>
+            ) : (
+              <ul>
+                {roomCases.map((c) => (
+                  <li key={c.id}>
+                    <button type="button" className="case-list__item" onClick={() => openCase(c)}>
+                      <span className="case-list__dot" style={{ background: c.color }} />
+                      <span>
+                        <strong>{c.title}</strong>
+                        <small>{c.subtitle}</small>
+                      </span>
                     </button>
-                    <button
-                      type="button"
-                      className="danger"
-                      aria-label={`ลบเคส ${c.title}`}
-                      onClick={() => {
-                        if (confirm(`ลบเคส "${c.title}"?`)) deleteCase(c.id)
-                      }}
-                    >
-                      ลบ
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                    <div className="case-list__actions">
+                      <button
+                        type="button"
+                        onClick={() => openEditor(c)}
+                        aria-label={`แก้ไขเคส ${c.title}`}
+                      >
+                        แก้ไข
+                      </button>
+                      <button
+                        type="button"
+                        className="danger"
+                        aria-label={`ลบเคส ${c.title}`}
+                        onClick={() => {
+                          if (confirm(`ลบเคส "${c.title}"?`)) deleteCase(c.id)
+                        }}
+                      >
+                        ลบ
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="sections-guide">
@@ -127,23 +190,40 @@ function App() {
         </main>
       )}
 
+      {/* ── Case Reader ── */}
       {view === 'read' && selectedCase && (
         <CaseReader
           surgicalCase={selectedCase}
           onClose={() => {
-            setView('shelf')
+            setView('room')
             setSelectedCase(null)
           }}
         />
       )}
 
+      {/* ── Case Editor ── */}
       {view === 'edit' && (
         <CaseEditor
           initial={editingCase}
+          categories={categories}
+          defaultCategoryId={activeCategoryId ?? UNCATEGORIZED_ID}
           onSave={handleSave}
+          onCancel={() => setView('room')}
+        />
+      )}
+
+      {/* ── Category Editor ── */}
+      {view === 'editCategory' && (
+        <CategoryEditor
+          initial={editingCategory}
+          onSave={(cat) => {
+            upsertCategory(cat)
+            setView('lobby')
+            setEditingCategory(undefined)
+          }}
           onCancel={() => {
-            setView('shelf')
-            setEditingCase(undefined)
+            setView('lobby')
+            setEditingCategory(undefined)
           }}
         />
       )}

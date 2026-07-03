@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { AnatomyImageUpload } from './AnatomyImageUpload'
-import type { SurgicalCase } from '../types/case'
+import type { Category, SurgicalCase } from '../types/case'
+import { UNCATEGORIZED_ID } from '../types/case'
 
 interface CaseEditorProps {
   initial?: SurgicalCase
+  categories: Category[]
+  defaultCategoryId?: string
   onSave: (surgicalCase: SurgicalCase) => void
   onCancel: () => void
 }
 
-const emptyCase = (): SurgicalCase => ({
+const emptyCase = (categoryId: string): SurgicalCase => ({
   id: crypto.randomUUID(),
+  categoryId,
   title: '',
   subtitle: '',
   color: '#457b9d',
@@ -41,8 +45,8 @@ function arrayToLines(arr: string[]) {
   return arr.join('\n')
 }
 
-export function CaseEditor({ initial, onSave, onCancel }: CaseEditorProps) {
-  const [form, setForm] = useState<SurgicalCase>(initial ?? emptyCase())
+export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onCancel }: CaseEditorProps) {
+  const [form, setForm] = useState<SurgicalCase>(initial ?? emptyCase(defaultCategoryId ?? UNCATEGORIZED_ID))
   const [storeText, setStoreText] = useState(arrayToLines(initial?.equipment.store ?? []))
   const [roomText, setRoomText] = useState(arrayToLines(initial?.equipment.room ?? []))
   const [basketText, setBasketText] = useState(arrayToLines(initial?.equipment.basket ?? []))
@@ -96,6 +100,19 @@ export function CaseEditor({ initial, onSave, onCancel }: CaseEditorProps) {
               onChange={(e) => update('subtitle', e.target.value)}
               placeholder="เช่น ตัดถุงน้ำดีแบบส่องกล้อง"
             />
+          </label>
+          <label>
+            หมวดหมู่
+            <select
+              value={form.categoryId}
+              onChange={(e) => update('categoryId', e.target.value)}
+            >
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon} {cat.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             สีปกหนังสือ
