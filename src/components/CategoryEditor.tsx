@@ -1,8 +1,50 @@
 import { useState } from 'react'
 import { type Category } from '../types/case'
 
-const PRESET_ICONS = ['🔪', '🦴', '👶', '🧠', '❤️', '🫘', '👁️', '🦷', '🫁', '🩺', '💊', '🏥']
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
+
+const ICON_GROUPS: { label: string; icons: string[] }[] = [
+  {
+    label: '🏥 ทางการแพทย์',
+    icons: ['🏥', '🩺', '💊', '💉', '🩹', '🩻', '🧬', '🔬', '🩸', '🧪', '🧫', '⚕️'],
+  },
+  {
+    label: '🔪 ศัลยกรรม',
+    icons: ['🔪', '✂️', '🩹', '🫀', '🫁', '🧠', '🦴', '🦷', '👁️', '👂', '🦵', '🦾'],
+  },
+  {
+    label: '👶 สูติ-กุมาร',
+    icons: ['👶', '🍼', '🤰', '👼', '🧒', '🐣', '🌱', '💝', '🎀', '🧸', '🌸', '🌷'],
+  },
+  {
+    label: '❤️ หัวใจ & ทรวงอก',
+    icons: ['❤️', '🫀', '💓', '💗', '🫁', '🩺', '💨', '🌬️', '💙', '🩵', '🔵', '⚡'],
+  },
+  {
+    label: '🧠 สมอง & ประสาท',
+    icons: ['🧠', '💭', '⚡', '🔭', '🎯', '🌀', '🧩', '🔮', '💡', '🌐', '🫧', '✨'],
+  },
+  {
+    label: '🦴 กระดูก & ข้อ',
+    icons: ['🦴', '🦵', '🦿', '🦾', '💪', '🏋️', '⚙️', '🔩', '🪛', '🔧', '🛠️', '🪝'],
+  },
+  {
+    label: '🫘 ระบบทางเดิน',
+    icons: ['🫘', '🫃', '🫄', '🥩', '🍖', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫'],
+  },
+  {
+    label: '👁️ ตา-หู-จมูก',
+    icons: ['👁️', '👀', '👂', '👃', '🦻', '🫦', '🦷', '👅', '🌟', '💫', '✨', '🌙'],
+  },
+  {
+    label: '🌿 ทั่วไป & อื่นๆ',
+    icons: ['📚', '📖', '📋', '📌', '🗂️', '🗃️', '📁', '🏷️', '🔖', '📝', '✏️', '🖊️'],
+  },
+  {
+    label: '🌸 สัญลักษณ์',
+    icons: ['🌸', '🌺', '🌻', '🌹', '💐', '🌷', '🍀', '🌿', '⭐', '🌟', '💎', '🏆'],
+  },
+]
 
 interface CategoryEditorProps {
   initial?: Category
@@ -12,18 +54,28 @@ interface CategoryEditorProps {
 
 export function CategoryEditor({ initial, onSave, onCancel }: CategoryEditorProps) {
   const [name, setName] = useState(initial?.name ?? '')
-  const [color, setColor] = useState(initial?.color ?? '#457b9d')
+  const [color, setColor] = useState(initial?.color ?? '#c2607a')
   const [icon, setIcon] = useState(initial?.icon ?? '🏥')
+  const [customIcon, setCustomIcon] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
+    const finalIcon = customIcon.trim() || icon
     onSave({
       id: initial?.id ?? crypto.randomUUID(),
       name: name.trim(),
-      color: HEX_COLOR_RE.test(color) ? color : '#457b9d',
-      icon,
+      color: HEX_COLOR_RE.test(color) ? color : '#c2607a',
+      icon: finalIcon,
     })
+  }
+
+  const handleCustomIconChange = (val: string) => {
+    // Keep only the first grapheme cluster (one emoji or character)
+    const segments = [...new Intl.Segmenter().segment(val)]
+    const first = segments[0]?.segment ?? ''
+    setCustomIcon(first)
+    if (first) setIcon(first)
   }
 
   return (
@@ -35,6 +87,18 @@ export function CategoryEditor({ initial, onSave, onCancel }: CategoryEditorProp
             ✕
           </button>
         </header>
+
+        {/* Preview */}
+        <div className="cat-preview">
+          <span
+            className="cat-preview__door"
+            style={{ background: color }}
+            aria-hidden="true"
+          >
+            {icon}
+          </span>
+          <span className="cat-preview__name">{name || 'ชื่อห้อง'}</span>
+        </div>
 
         <label>
           ชื่อห้อง / หมวดหมู่
@@ -50,18 +114,44 @@ export function CategoryEditor({ initial, onSave, onCancel }: CategoryEditorProp
 
         <fieldset>
           <legend>เลือก Emoji ประจำห้อง</legend>
-          <div className="cat-icon-grid">
-            {PRESET_ICONS.map((ic) => (
-              <button
-                key={ic}
-                type="button"
-                className={`cat-icon-btn ${icon === ic ? 'selected' : ''}`}
-                onClick={() => setIcon(ic)}
-                aria-label={ic}
-                aria-pressed={icon === ic}
-              >
-                {ic}
-              </button>
+
+          {/* Custom emoji input */}
+          <div className="cat-custom-icon">
+            <label htmlFor="custom-icon-input" className="cat-custom-icon__label">
+              พิมพ์ emoji เอง:
+            </label>
+            <input
+              id="custom-icon-input"
+              type="text"
+              className="cat-custom-icon__input"
+              value={customIcon}
+              onChange={(e) => handleCustomIconChange(e.target.value)}
+              placeholder="🎯"
+              maxLength={4}
+            />
+            <span className="cat-custom-icon__hint">หรือเลือกจากด้านล่าง</span>
+          </div>
+
+          {/* Grouped grid */}
+          <div className="cat-icon-groups">
+            {ICON_GROUPS.map((group) => (
+              <div key={group.label} className="cat-icon-group">
+                <p className="cat-icon-group__label">{group.label}</p>
+                <div className="cat-icon-grid">
+                  {group.icons.map((ic) => (
+                    <button
+                      key={ic}
+                      type="button"
+                      className={`cat-icon-btn ${icon === ic ? 'selected' : ''}`}
+                      onClick={() => { setIcon(ic); setCustomIcon('') }}
+                      aria-label={ic}
+                      aria-pressed={icon === ic}
+                    >
+                      {ic}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </fieldset>

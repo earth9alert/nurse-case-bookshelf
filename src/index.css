@@ -1,18 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #f4f1ea;
-  --bg-dark: #2c2416;
-  --surface: #fffef9;
-  --text: #1a1a1a;
-  --text-muted: #5c5347;
-  --accent: #c1666b;
-  --accent-dark: #9b4f54;
-  --wood: #8b6914;
-  --wood-light: #c4a35a;
-  --wood-dark: #5c4a1f;
-  --shelf-shadow: rgba(44, 36, 22, 0.25);
-  --radius: 12px;
+  --bg: #fdf6f9;
+  --bg-dark: #3b1f2b;
+  --surface: #fffcfe;
+  --text: #2a1a20;
+  --text-muted: #7a5a67;
+  --accent: #c2607a;
+  --accent-dark: #a04a62;
+  --accent-soft: #f7dde5;
+  --wood: #b07a5a;
+  --wood-light: #d4a882;
+  --wood-dark: #7a4f35;
+  --shelf-shadow: rgba(59, 31, 43, 0.22);
+  --radius: 14px;
   --font: 'Sarabun', 'IBM Plex Sans Thai', system-ui, sans-serif;
 }
 
@@ -29,7 +30,7 @@ body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 #root {
@@ -42,6 +43,7 @@ button {
 }
 
 input,
-textarea {
+textarea,
+select {
   font-family: inherit;
 }
