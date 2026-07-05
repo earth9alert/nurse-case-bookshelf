@@ -14,31 +14,20 @@ const HIGHLIGHT_COLORS = [
   { color: '#ffd6e0', label: 'ชมพู' },
   { color: '#bbdefb', label: 'ฟ้า' },
   { color: '#ffe0b2', label: 'ส้ม' },
-  { color: '#e1bee7', label: 'ม่วง' },
-  { color: '#b2ebf2', label: 'ฟ้าอมเขียว' },
-  { color: '#f8bbd9', label: 'ชมพูเข้ม' },
-  { color: '#dcedc8', label: 'เขียวอ่อน' },
-  { color: '#ffccbc', label: 'แซลมอน' },
-  { color: '#fff9c4', label: 'เหลืองอ่อน' },
-  { color: '#cfd8dc', label: 'เทา' },
 ]
 
 function execCmd(cmd: string, value?: string) {
   document.execCommand(cmd, false, value)
 }
 
-interface FloatingToolbarPos {
-  top: number
-  left: number
-}
+interface FloatPos { top: number; left: number }
 
 export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const isComposing = useRef(false)
   const skipNextSync = useRef(false)
-
-  const [floatPos, setFloatPos] = useState<FloatingToolbarPos | null>(null)
+  const [floatPos, setFloatPos] = useState<FloatPos | null>(null)
   const [hasSelection, setHasSelection] = useState(false)
 
   // Sync external value → DOM
@@ -57,54 +46,37 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
     onChange(el.innerHTML)
   }, [onChange])
 
-  // Show/hide floating toolbar based on selection
-  const updateFloatingToolbar = useCallback(() => {
+  // Floating toolbar position — above selected text
+  const updateFloat = useCallback(() => {
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-      setFloatPos(null)
-      setHasSelection(false)
-      return
+      setFloatPos(null); setHasSelection(false); return
     }
-
-    // Only show if selection is inside our editor
     const wrapper = wrapperRef.current
     if (!wrapper) return
     const range = sel.getRangeAt(0)
-    const ancestor = range.commonAncestorContainer
-    if (!wrapper.contains(ancestor)) {
-      setFloatPos(null)
-      setHasSelection(false)
-      return
+    if (!wrapper.contains(range.commonAncestorContainer)) {
+      setFloatPos(null); setHasSelection(false); return
     }
-
     const rect = range.getBoundingClientRect()
-    const wrapRect = wrapper.getBoundingClientRect()
-
-    // Position above the selection, centered
-    const top = rect.top - wrapRect.top - 48   // 48px toolbar height + gap
-    const left = rect.left - wrapRect.left + rect.width / 2
-
-    setFloatPos({ top, left })
+    const wRect = wrapper.getBoundingClientRect()
+    setFloatPos({
+      top: rect.top - wRect.top - 50,
+      left: rect.left - wRect.left + rect.width / 2,
+    })
     setHasSelection(true)
   }, [])
 
   useEffect(() => {
-    document.addEventListener('selectionchange', updateFloatingToolbar)
-    return () => document.removeEventListener('selectionchange', updateFloatingToolbar)
-  }, [updateFloatingToolbar])
+    document.addEventListener('selectionchange', updateFloat)
+    return () => document.removeEventListener('selectionchange', updateFloat)
+  }, [updateFloat])
 
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault()
-    const text = e.clipboardData.getData('text/plain')
-    document.execCommand('insertText', false, text)
-  }
-
-  const applyFormat = (cmd: string, value?: string) => {
+  const applyFormat = (cmd: string, val?: string) => {
     editorRef.current?.focus()
-    execCmd(cmd, value)
+    execCmd(cmd, val)
     handleInput()
-    // Keep toolbar visible briefly after applying
-    setTimeout(updateFloatingToolbar, 50)
+    setTimeout(updateFloat, 50)
   }
 
   const queryActive = (cmd: string) => {
@@ -113,10 +85,44 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
 
   const minHeight = `${rows * 1.65 * 16}px`
 
+  // Shared color swatches renderer
+  const ColorSwatches = ({ onMouseDown }: { onMouseDown?: () => void }) => (
+    <>
+      {HIGHLIGHT_COLORS.map(({ color, label }) => (
+        <button
+          key={color}
+          type="button"
+          className="rte-swatch"
+          style={{ background: color }}
+          onMouseDown={(e) => {
+            e.preventDefault()
+            onMouseDown?.()
+            applyFormat('hiliteColor', color)
+          }}
+          title={`ไฮไลท์${label}`}
+          aria-label={`ไฮไลท์${label}`}
+        />
+      ))}
+      <button
+        type="button"
+        className="rte-swatch rte-swatch--clear"
+        onMouseDown={(e) => {
+          e.preventDefault()
+          onMouseDown?.()
+          applyFormat('hiliteColor', 'transparent')
+        }}
+        title="ลบไฮไลท์"
+        aria-label="ลบไฮไลท์"
+      >
+        ✕
+      </button>
+    </>
+  )
+
   return (
     <div className="rte-wrapper" ref={wrapperRef}>
 
-      {/* Static top toolbar — B, U, clear only */}
+      {/* ── Static top toolbar ── */}
       <div className="rte-toolbar" role="toolbar" aria-label="จัดรูปแบบข้อความ">
         <button
           type="button"
@@ -126,6 +132,7 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
         >
           <strong>B</strong>
         </button>
+
         <button
           type="button"
           className={`rte-btn ${queryActive('underline') ? 'rte-btn--active' : ''}`}
@@ -134,7 +141,15 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
         >
           <span style={{ textDecoration: 'underline' }}>U</span>
         </button>
+
         <div className="rte-divider" aria-hidden="true" />
+
+        {/* Highlight label */}
+        <span className="rte-label">ไฮไลท์:</span>
+        <ColorSwatches />
+
+        <div className="rte-divider" aria-hidden="true" />
+
         <button
           type="button"
           className="rte-btn"
@@ -143,12 +158,9 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
         >
           <span style={{ fontSize: '0.75rem' }}>A̶</span>
         </button>
-        <div className="rte-toolbar-hint">
-          เลือกข้อความเพื่อไฮไลท์ 🎨
-        </div>
       </div>
 
-      {/* Editor */}
+      {/* ── Editor content ── */}
       <div
         id={id}
         ref={editorRef}
@@ -162,24 +174,23 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
         onInput={handleInput}
         onCompositionStart={() => { isComposing.current = true }}
         onCompositionEnd={() => { isComposing.current = false; handleInput() }}
-        onPaste={handlePaste}
+        onPaste={(e) => {
+          e.preventDefault()
+          const text = e.clipboardData.getData('text/plain')
+          execCmd('insertText', text)
+        }}
         data-placeholder={placeholder}
       />
 
-      {/* Floating toolbar — appears above selected text */}
+      {/* ── Floating toolbar above selection ── */}
       {hasSelection && floatPos && (
         <div
           className="rte-float-toolbar"
-          style={{
-            top: Math.max(4, floatPos.top),
-            left: floatPos.left,
-          }}
+          style={{ top: Math.max(4, floatPos.top), left: floatPos.left }}
           role="toolbar"
-          aria-label="ไฮไลท์สี"
-          // Prevent mousedown from collapsing selection
+          aria-label="จัดรูปแบบข้อความที่เลือก"
           onMouseDown={(e) => e.preventDefault()}
         >
-          {/* B and U inline too for convenience */}
           <button
             type="button"
             className={`rte-float-btn rte-float-fmt ${queryActive('bold') ? 'active' : ''}`}
@@ -199,7 +210,7 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
 
           <div className="rte-float-divider" aria-hidden="true" />
 
-          {/* Color swatches */}
+          {/* Same colors in float bar */}
           {HIGHLIGHT_COLORS.map(({ color, label }) => (
             <button
               key={color}
@@ -211,8 +222,6 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
               aria-label={`ไฮไลท์${label}`}
             />
           ))}
-
-          {/* Clear highlight */}
           <button
             type="button"
             className="rte-float-btn rte-float-clear"
