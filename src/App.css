@@ -1879,9 +1879,10 @@
 .rte-wrapper {
   border: 1px solid #ccc5b9;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;        /* allow float toolbar to overflow */
   background: white;
   margin-bottom: 0.5rem;
+  position: relative;
 }
 
 .rte-toolbar {
@@ -1891,7 +1892,16 @@
   padding: 0.35rem 0.5rem;
   background: #f8f4f0;
   border-bottom: 1px solid #e8e4dc;
+  border-radius: 8px 8px 0 0;
   flex-wrap: wrap;
+}
+
+.rte-toolbar-hint {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  white-space: nowrap;
 }
 
 .rte-btn {
@@ -1925,64 +1935,6 @@
   flex-shrink: 0;
 }
 
-/* Highlight group with color swatches */
-.rte-highlight-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.rte-highlight-icon span {
-  border-radius: 2px;
-  padding: 0 3px;
-  font-weight: 700;
-}
-
-.rte-color-swatches {
-  display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  background: white;
-  border: 1px solid #e0dbd4;
-  border-radius: 8px;
-  padding: 6px;
-  gap: 5px;
-  flex-wrap: wrap;
-  width: 160px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  z-index: 50;
-}
-
-.rte-highlight-group:hover .rte-color-swatches,
-.rte-highlight-group:focus-within .rte-color-swatches {
-  display: flex;
-}
-
-.rte-swatch {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(0,0,0,0.1);
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 0;
-  transition: transform 0.1s, border-color 0.1s;
-}
-
-.rte-swatch:hover {
-  transform: scale(1.2);
-  border-color: rgba(0,0,0,0.3);
-}
-
-.rte-swatch--clear {
-  background: white;
-  font-size: 0.7rem;
-  color: #999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Editor content area */
 .rte-content {
   padding: 0.65rem 0.75rem;
@@ -1993,17 +1945,110 @@
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
+  border-radius: 0 0 8px 8px;
 }
 
 .rte-content:focus {
   background: #fffef9;
 }
 
-/* Placeholder */
 .rte-content:empty::before {
   content: attr(data-placeholder);
   color: #b0a8a0;
   pointer-events: none;
+}
+
+/* ── Floating toolbar ── */
+
+.rte-float-toolbar {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 7px;
+  background: #2c2416;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+  /* Arrow pointing down */
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+/* Little arrow at the bottom */
+.rte-float-toolbar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #2c2416;
+}
+
+.rte-float-btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
+  padding: 0;
+}
+
+.rte-float-btn:hover {
+  transform: scale(1.15);
+}
+
+/* B / U buttons in floating bar */
+.rte-float-fmt {
+  background: rgba(255,255,255,0.12);
+  color: #f5f0e8;
+  width: 28px;
+  height: 28px;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.rte-float-fmt.active {
+  background: rgba(255,255,255,0.3);
+}
+
+.rte-float-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* Color swatches */
+.rte-float-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3) !important;
+  flex-shrink: 0;
+}
+
+.rte-float-swatch:hover {
+  border-color: white !important;
+}
+
+/* Clear button */
+.rte-float-clear {
+  background: rgba(255,255,255,0.12);
+  color: #f5f0e8;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Reader: rich HTML rendering */
@@ -2023,4 +2068,21 @@
 .text-block--rich u {
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* Mobile: bigger swatches */
+@media (max-width: 600px) {
+  .rte-float-swatch {
+    width: 26px;
+    height: 26px;
+  }
+
+  .rte-float-toolbar {
+    gap: 4px;
+    padding: 6px 8px;
+  }
+
+  .rte-toolbar-hint {
+    display: none;
+  }
 }
