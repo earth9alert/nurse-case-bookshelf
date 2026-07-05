@@ -29,16 +29,28 @@ function SectionContent({
   surgicalCase: SurgicalCase
 }) {
   const imgs = surgicalCase.images[sectionKey] ?? []
+  // Map section key → gallery title
+  const galleryTitle: Record<SectionKey, string> = {
+    dx:          'รูปประกอบ — Dx',
+    operation:   'รูปประกอบ — Operation',
+    anatomy:     'รูประบบ Anatomy',
+    roomSetup:   'รูปประกอบ — การจัดห้อง',
+    equipment:   'รูปประกอบ — อุปกรณ์',
+    positioning: 'รูปประกอบ — การจัดท่า',
+    draping:     'รูปประกอบ — การปูผ้า',
+    steps:       'รูปประกอบ — Step',
+  }
+  const title = galleryTitle[sectionKey]
 
   switch (sectionKey) {
     case 'dx':
-      return <><TextBlock content={surgicalCase.dx} /><AnatomyGallery images={imgs} /></>
+      return <><TextBlock content={surgicalCase.dx} /><AnatomyGallery images={imgs} title={title} /></>
     case 'operation':
-      return <><TextBlock content={surgicalCase.operation} /><AnatomyGallery images={imgs} /></>
+      return <><TextBlock content={surgicalCase.operation} /><AnatomyGallery images={imgs} title={title} /></>
     case 'anatomy':
-      return <><TextBlock content={surgicalCase.anatomy} /><AnatomyGallery images={imgs} /></>
+      return <><TextBlock content={surgicalCase.anatomy} /><AnatomyGallery images={imgs} title={title} /></>
     case 'roomSetup':
-      return <><TextBlock content={surgicalCase.roomSetup} /><AnatomyGallery images={imgs} /></>
+      return <><TextBlock content={surgicalCase.roomSetup} /><AnatomyGallery images={imgs} title={title} /></>
     case 'equipment':
       return (
         <>
@@ -47,28 +59,36 @@ function SectionContent({
             <EquipmentList title="ของในห้องเวช" items={surgicalCase.equipment.room} icon="🏥" />
             <EquipmentList title="ของในตะกร้า" items={surgicalCase.equipment.basket} icon="🧺" />
           </div>
-          <AnatomyGallery images={imgs} />
+          <AnatomyGallery images={imgs} title={title} />
         </>
       )
     case 'positioning':
-      return <><TextBlock content={surgicalCase.positioning} /><AnatomyGallery images={imgs} /></>
+      return <><TextBlock content={surgicalCase.positioning} /><AnatomyGallery images={imgs} title={title} /></>
     case 'draping':
-      return <><TextBlock content={surgicalCase.draping} /><AnatomyGallery images={imgs} /></>
+      return <><TextBlock content={surgicalCase.draping} /><AnatomyGallery images={imgs} title={title} /></>
     case 'steps':
       return (
         <>
-          <ol className="steps-list">
-            {surgicalCase.steps.map((step, i) => (
-              <li key={i}>{step}</li>
-            ))}
-          </ol>
-          <AnatomyGallery images={imgs} />
+          <TextBlock content={surgicalCase.steps} />
+          <AnatomyGallery images={imgs} title={title} />
         </>
       )
   }
 }
 
 function TextBlock({ content }: { content: string }) {
+  // Content may be plain text (legacy) or HTML (rich text)
+  const isHtml = /<[a-z][\s\S]*>/i.test(content)
+  if (isHtml) {
+    return (
+      <div
+        className="text-block text-block--rich"
+        // Safe: content is only produced by our own RichTextEditor
+        // which only allows bold/underline/highlight via execCommand
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    )
+  }
   return (
     <div className="text-block">
       {content.split('\n').map((line, i) => (

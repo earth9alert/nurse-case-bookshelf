@@ -3,9 +3,10 @@ import type { AnatomyImage } from '../types/case'
 
 interface AnatomyGalleryProps {
   images: AnatomyImage[]
+  title?: string
 }
 
-export function AnatomyGallery({ images }: AnatomyGalleryProps) {
+export function AnatomyGallery({ images, title }: AnatomyGalleryProps) {
   const [lightbox, setLightbox] = useState<AnatomyImage | null>(null)
 
   const closeLightbox = useCallback(() => setLightbox(null), [])
@@ -24,7 +25,7 @@ export function AnatomyGallery({ images }: AnatomyGalleryProps) {
   return (
     <>
       <div className="anatomy-gallery">
-        <h3>รูประบบ Anatomy</h3>
+        {title && <h3>{title}</h3>}
         <div className="anatomy-gallery__grid">
           {images.map((img) => (
             <button

@@ -76,6 +76,19 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     if (legacy.length) images.draping = legacy
   }
 
+  // Migrate steps: string[] → rich text HTML
+  let steps: string
+  if (typeof o.steps === 'string') {
+    steps = o.steps
+  } else if (Array.isArray(o.steps) && o.steps.every((s) => typeof s === 'string')) {
+    // Convert old array to numbered HTML list
+    steps = (o.steps as string[])
+      .map((s, i) => `<p>${i + 1}. ${s}</p>`)
+      .join('')
+  } else {
+    steps = ''
+  }
+
   return {
     id: o.id,
     categoryId: typeof o.categoryId === 'string' && o.categoryId ? o.categoryId : UNCATEGORIZED_ID,
@@ -94,7 +107,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     },
     positioning: typeof o.positioning === 'string' ? o.positioning : '',
     draping: typeof o.draping === 'string' ? o.draping : '',
-    steps: isStringArray(o.steps) ? o.steps : [],
+    steps,
     images,
   }
 }

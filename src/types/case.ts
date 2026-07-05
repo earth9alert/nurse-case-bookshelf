@@ -34,7 +34,7 @@ export interface SurgicalCase {
   equipment: Equipment
   positioning: string
   draping: string
-  steps: string[]
+  steps: string              // rich text HTML (was string[] in older versions)
   images: SectionImages      // all section photos in one place
 }
 

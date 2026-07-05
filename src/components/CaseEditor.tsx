@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { AnatomyImageUpload } from './AnatomyImageUpload'
+import { RichTextEditor } from './RichTextEditor'
 import type { AnatomyImage, Category, SectionKey, SurgicalCase } from '../types/case'
-import { SECTIONS, UNCATEGORIZED_ID } from '../types/case'
+import { UNCATEGORIZED_ID } from '../types/case'
 
 interface CaseEditorProps {
   initial?: SurgicalCase
@@ -25,7 +26,7 @@ const emptyCase = (categoryId: string): SurgicalCase => ({
   equipment: { store: [], room: [], basket: [] },
   positioning: '',
   draping: '',
-  steps: [],
+  steps: '',
   images: {},
 })
 
@@ -41,15 +42,11 @@ function arrayToLines(arr: string[]) {
   return arr.join('\n')
 }
 
-// Sections that support image upload (all except equipment which has its own UI)
-const IMAGE_SECTIONS: SectionKey[] = ['dx', 'operation', 'anatomy', 'roomSetup', 'equipment', 'positioning', 'draping', 'steps']
-
 export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onCancel }: CaseEditorProps) {
   const [form, setForm] = useState<SurgicalCase>(initial ?? emptyCase(defaultCategoryId ?? UNCATEGORIZED_ID))
   const [storeText, setStoreText] = useState(arrayToLines(initial?.equipment.store ?? []))
   const [roomText, setRoomText] = useState(arrayToLines(initial?.equipment.room ?? []))
   const [basketText, setBasketText] = useState(arrayToLines(initial?.equipment.basket ?? []))
-  const [stepsText, setStepsText] = useState(arrayToLines(initial?.steps ?? []))
 
   const update = <K extends keyof SurgicalCase>(key: K, value: SurgicalCase[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -76,12 +73,16 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
         room: linesToArray(roomText),
         basket: linesToArray(basketText),
       },
-      steps: linesToArray(stepsText),
     })
   }
 
-  // Suppress unused warning — IMAGE_SECTIONS used below
-  void IMAGE_SECTIONS
+  const imgUpload = (key: SectionKey) => (
+    <AnatomyImageUpload
+      images={sectionImages(key)}
+      label={`📷 เพิ่มรูป (${sectionImages(key).length} รูป)`}
+      onChange={(next) => updateImages(key, next)}
+    />
+  )
 
   return (
     <div className="editor-overlay" role="dialog" aria-modal="true" aria-labelledby="editor-title">
@@ -93,25 +94,19 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
           </button>
         </header>
 
+        {/* Meta */}
         <div className="editor-form__grid">
           <label>
             ชื่อเคส (Operation)
-            <input
-              required
-              maxLength={MAX_SHORT_TEXT}
-              value={form.title}
+            <input required maxLength={MAX_SHORT_TEXT} value={form.title}
               onChange={(e) => update('title', e.target.value)}
-              placeholder="เช่น Laparoscopic Cholecystectomy"
-            />
+              placeholder="เช่น Laparoscopic Cholecystectomy" />
           </label>
           <label>
             คำอธิบาย (ภาษาไทย)
-            <input
-              maxLength={MAX_SHORT_TEXT}
-              value={form.subtitle}
+            <input maxLength={MAX_SHORT_TEXT} value={form.subtitle}
               onChange={(e) => update('subtitle', e.target.value)}
-              placeholder="เช่น ตัดถุงน้ำดีแบบส่องกล้อง"
-            />
+              placeholder="เช่น ตัดถุงน้ำดีแบบส่องกล้อง" />
           </label>
           <label>
             หมวดหมู่
@@ -127,102 +122,77 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
           </label>
         </div>
 
-        {/* Section labels from SECTIONS for consistency */}
-        {SECTIONS.map((section) => {
-          const key = section.key
-          const imgs = sectionImages(key)
-          const uploadBlock = (
-            <AnatomyImageUpload
-              images={imgs}
-              label={`📷 เพิ่มรูป (${imgs.length} รูป)`}
-              onChange={(next) => updateImages(key, next)}
-            />
-          )
+        {/* Rich-text sections */}
+        <fieldset>
+          <legend>1. Dx — การวินิจฉัย</legend>
+          <RichTextEditor value={form.dx} onChange={(v) => update('dx', v)}
+            placeholder="การวินิจฉัย อาการ และผลตรวจ" rows={4} />
+          {imgUpload('dx')}
+        </fieldset>
 
-          if (key === 'dx') return (
-            <fieldset key={key}>
-              <legend>1. Dx — การวินิจฉัย</legend>
-              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.dx}
-                onChange={(e) => update('dx', e.target.value)} placeholder="การวินิจฉัย อาการ และผลตรวจ" />
-              {uploadBlock}
-            </fieldset>
-          )
+        <fieldset>
+          <legend>2. Operation — หัตถการ</legend>
+          <RichTextEditor value={form.operation} onChange={(v) => update('operation', v)}
+            placeholder="รายละเอียดหัตถการ approach ports เวลา" rows={4} />
+          {imgUpload('operation')}
+        </fieldset>
 
-          if (key === 'operation') return (
-            <fieldset key={key}>
-              <legend>2. Operation — หัตถการ</legend>
-              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.operation}
-                onChange={(e) => update('operation', e.target.value)} placeholder="รายละเอียดหัตถการ approach ports เวลา" />
-              {uploadBlock}
-            </fieldset>
-          )
+        <fieldset>
+          <legend>3. Anatomy — กายวิภาค</legend>
+          <RichTextEditor value={form.anatomy} onChange={(v) => update('anatomy', v)}
+            placeholder="โครงสร้างที่เกี่ยวข้อง จุดที่ต้องระวัง" rows={4} />
+          {imgUpload('anatomy')}
+        </fieldset>
 
-          if (key === 'anatomy') return (
-            <fieldset key={key}>
-              <legend>3. Anatomy — กายวิภาค</legend>
-              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.anatomy}
-                onChange={(e) => update('anatomy', e.target.value)} placeholder="โครงสร้างที่เกี่ยวข้อง จุดที่ต้องระวัง" />
-              {uploadBlock}
-            </fieldset>
-          )
+        <fieldset>
+          <legend>4. การจัดห้อง</legend>
+          <RichTextEditor value={form.roomSetup} onChange={(v) => update('roomSetup', v)}
+            placeholder="ขั้นตอนเตรียมห้องผ่าตัด" rows={4} />
+          {imgUpload('roomSetup')}
+        </fieldset>
 
-          if (key === 'roomSetup') return (
-            <fieldset key={key}>
-              <legend>4. การจัดห้อง</legend>
-              <textarea rows={4} maxLength={MAX_LONG_TEXT} value={form.roomSetup}
-                onChange={(e) => update('roomSetup', e.target.value)} placeholder="ขั้นตอนเตรียมห้องผ่าตัด" />
-              {uploadBlock}
-            </fieldset>
-          )
+        {/* Equipment stays as plain textarea (line-based lists) */}
+        <fieldset className="equipment-fieldset">
+          <legend>5. อุปกรณ์</legend>
+          <label>
+            ของใน Store (หนึ่งรายการต่อบรรทัด)
+            <textarea rows={4} maxLength={MAX_LONG_TEXT} value={storeText}
+              onChange={(e) => setStoreText(e.target.value)} />
+          </label>
+          <label>
+            ของในห้องเวช
+            <textarea rows={4} maxLength={MAX_LONG_TEXT} value={roomText}
+              onChange={(e) => setRoomText(e.target.value)} />
+          </label>
+          <label>
+            ของในตะกร้า
+            <textarea rows={4} maxLength={MAX_LONG_TEXT} value={basketText}
+              onChange={(e) => setBasketText(e.target.value)} />
+          </label>
+          {imgUpload('equipment')}
+        </fieldset>
 
-          if (key === 'equipment') return (
-            <fieldset key={key} className="equipment-fieldset">
-              <legend>5. อุปกรณ์</legend>
-              <label>
-                ของใน Store (หนึ่งรายการต่อบรรทัด)
-                <textarea rows={4} maxLength={MAX_LONG_TEXT} value={storeText} onChange={(e) => setStoreText(e.target.value)} />
-              </label>
-              <label>
-                ของในห้องเวช
-                <textarea rows={4} maxLength={MAX_LONG_TEXT} value={roomText} onChange={(e) => setRoomText(e.target.value)} />
-              </label>
-              <label>
-                ของในตะกร้า
-                <textarea rows={4} maxLength={MAX_LONG_TEXT} value={basketText} onChange={(e) => setBasketText(e.target.value)} />
-              </label>
-              {uploadBlock}
-            </fieldset>
-          )
+        <fieldset>
+          <legend>6. การจัดท่า</legend>
+          <RichTextEditor value={form.positioning} onChange={(v) => update('positioning', v)}
+            placeholder="Position ที่ใช้" rows={3} />
+          {imgUpload('positioning')}
+        </fieldset>
 
-          if (key === 'positioning') return (
-            <fieldset key={key}>
-              <legend>6. การจัดท่า</legend>
-              <textarea rows={3} maxLength={MAX_LONG_TEXT} value={form.positioning}
-                onChange={(e) => update('positioning', e.target.value)} />
-              {uploadBlock}
-            </fieldset>
-          )
+        <fieldset>
+          <legend>7. การปูผ้า</legend>
+          <RichTextEditor value={form.draping} onChange={(v) => update('draping', v)}
+            placeholder="ขั้นตอนการปูผ้า" rows={3} />
+          {imgUpload('draping')}
+        </fieldset>
 
-          if (key === 'draping') return (
-            <fieldset key={key}>
-              <legend>7. การปูผ้า</legend>
-              <textarea rows={3} maxLength={MAX_LONG_TEXT} value={form.draping}
-                onChange={(e) => update('draping', e.target.value)} />
-              {uploadBlock}
-            </fieldset>
-          )
-
-          if (key === 'steps') return (
-            <fieldset key={key}>
-              <legend>8. Step — ขั้นตอน (หนึ่ง step ต่อบรรทัด)</legend>
-              <textarea rows={6} maxLength={MAX_LONG_TEXT} value={stepsText}
-                onChange={(e) => setStepsText(e.target.value)} />
-              {uploadBlock}
-            </fieldset>
-          )
-
-          return null
-        })}
+        {/* Steps — rich text, user types numbers themselves */}
+        <fieldset>
+          <legend>8. Step — ขั้นตอน</legend>
+          <RichTextEditor value={form.steps} onChange={(v) => update('steps', v)}
+            placeholder="พิมพ์ขั้นตอน เช่น&#10;1. รับ patient + Time Out&#10;2. Position + Drape" rows={6} />
+          {imgUpload('steps')}
+        </fieldset>
 
         <footer className="editor-form__footer">
           <button type="button" className="btn-secondary" onClick={onCancel}>ยกเลิก</button>

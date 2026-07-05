@@ -19,7 +19,7 @@ export const sampleCases: SurgicalCase[] = [
     },
     positioning: 'Supine, arms tucked\n- Reverse Trendelenburg 15–20°\n- Head slightly left\n- Left side up slightly\n- Safety strap ที่ chest และ thighs\n- Foley catheter (optional)',
     draping: '1. ปู sterile drape จาก chest ถึง mid-thigh\n2. เปิด fenestrated drape ที่ umbilicus\n3. 4 quadrant drape สำหรับ port sites\n4. เก็บ cord ให้เรียบร้อย ไม่พันกับ trocar\n5. ตรวจ fenestration ตรงตำแหน่งก่อน surgeon เริ่ม',
-    steps: ['รับ patient + Time Out + ตรวจ consent', 'Position + Drape ตาม protocol', 'Surgeon: pneumoperitoneum + port placement', 'Scrub nurse: ส่ง instrument ตามขั้นตอน', 'Critical view of safety → clip & divide cystic duct/artery', 'Dissect gallbladder from liver bed', 'Specimen retrieval → port closure', 'Count instrument & sponge', 'Extubation / PACU handoff'],
+    steps: '<p>1. รับ patient + Time Out + ตรวจ consent</p><p>2. Position + Drape ตาม protocol</p><p>3. Surgeon: pneumoperitoneum + port placement</p><p>4. Scrub nurse: ส่ง instrument ตามขั้นตอน</p><p>5. Critical view of safety → clip &amp; divide cystic duct/artery</p><p>6. Dissect gallbladder from liver bed</p><p>7. Specimen retrieval → port closure</p><p>8. Count instrument &amp; sponge</p><p>9. Extubation / PACU handoff</p>',
     images: {},
   },
   {
@@ -40,7 +40,7 @@ export const sampleCases: SurgicalCase[] = [
     },
     positioning: 'Supine on orthopedic table\n- Tourniquet ที่ proximal thigh\n- Foot of table removable\n- Bump under ipsilateral hip (optional)\n- Non-operative leg lowered\n- Arms on arm boards, padded',
     draping: '1. Stockinette + Webril wrap ขา operative side\n2. Tourniquet cuff → ปู cuff drape\n3. Extremity drape (circumferential)\n4. Stockinette ตัดเป็น fenestration\n5. Impervious U-drape รอบ incision site\n6. ห้าม lift ขาหลัง drape แล้ว',
-    steps: ['Time Out + antibiotic within 60 min', 'Position + tourniquet test + drape', 'Inflate tourniquet (after exsanguination)', 'Incision → arthrotomy → exposure', 'Bone cuts + trial reduction', 'Final implant placement', 'Deflate tourniquet → hemostasis', 'Closure layer by layer', 'Dressing + immobilizer / TED stocking'],
+    steps: '<p>1. Time Out + antibiotic within 60 min</p><p>2. Position + tourniquet test + drape</p><p>3. Inflate tourniquet (after exsanguination)</p><p>4. Incision → arthrotomy → exposure</p><p>5. Bone cuts + trial reduction</p><p>6. Final implant placement</p><p>7. Deflate tourniquet → hemostasis</p><p>8. Closure layer by layer</p><p>9. Dressing + immobilizer / TED stocking</p>',
     images: {},
   },
   {
@@ -61,7 +61,7 @@ export const sampleCases: SurgicalCase[] = [
     },
     positioning: 'Supine with left lateral tilt 15°\n- Wedge under right hip (prevent IVC compression)\n- Left arm out, right arm tucked\n- Foley catheter in place\n- Safety strap',
     draping: '1. Foley catheter → secure drainage\n2. Abdominal prep จาก xiphoid ถึง mid-thigh\n3. Towel clips at umbilicus\n4. Fenestrated drape\n5. เปิด infant warmer field แยก sterile zone\n6. Vertical drape for neonatal resuscitation access',
-    steps: ['Time Out + confirm fetal heart tone', 'Position + Foley + prep & drape', 'Skin incision → fascia → peritoneum', 'Bladder flap → lower segment uterine incision', 'Deliver baby → cord clamp → hand to neonatal team', 'Deliver placenta → uterine repair', 'Fascia & skin closure', 'Skin-to-skin (if stable) or PACU', 'Document Apgar, EBL, uterotonics given'],
+    steps: '<p>1. Time Out + confirm fetal heart tone</p><p>2. Position + Foley + prep &amp; drape</p><p>3. Skin incision → fascia → peritoneum</p><p>4. Bladder flap → lower segment uterine incision</p><p>5. Deliver baby → cord clamp → hand to neonatal team</p><p>6. Deliver placenta → uterine repair</p><p>7. Fascia &amp; skin closure</p><p>8. Skin-to-skin (if stable) or PACU</p><p>9. Document Apgar, EBL, uterotonics given</p>',
     images: {},
   },
 ]
