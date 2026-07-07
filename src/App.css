@@ -2520,8 +2520,26 @@
 
   .print-image img { max-height: 160px; }
 
-  .print-section { page-break-inside: avoid; }
-  .print-header  { page-break-after: avoid; }
+  .print-section {
+    page-break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .print-section__title {
+    page-break-after: avoid;
+    page-break-before: auto;
+  }
+
+  .print-header { page-break-after: avoid; }
+
+  /* Prevent images from orphaning */
+  .print-images { page-break-inside: avoid; }
+  .print-image { page-break-inside: avoid; }
+
+  /* Prevent equipment lists from breaking badly */
+  .print-equipment { page-break-inside: avoid; }
+  .print-equipment__col { page-break-inside: avoid; }
 
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
@@ -2535,3 +2553,26 @@
   .print-image { max-width: 100%; }
   .print-toolbar__hint { display: none; }
 }
+
+/* ── Dark mode: Improve readability in reader ── */
+
+[data-theme='dark'] .case-reader__content h2 { color: #e07a94; }
+[data-theme='dark'] .case-reader__content h3 { color: #d6b5c8; }
+[data-theme='dark'] .case-reader__content p { color: #fce7f0; }
+[data-theme='dark'] .case-reader__content li { color: #fce7f0; }
+[data-theme='dark'] .text-block p { color: #fce7f0; }
+[data-theme='dark'] .steps-list li { color: #fce7f0; }
+[data-theme='dark'] .equipment-list li { color: #fce7f0; }
+[data-theme='dark'] .print-content { color: #fce7f0; }
+[data-theme='dark'] .print-rich { color: #fce7f0; }
+
+/* Hyperlinks in dark mode */
+[data-theme='dark'] a { color: #e07a94; }
+[data-theme='dark'] a:visited { color: #d6659f; }
+
+/* Dark mode: highlight colors remain visible */
+[data-theme='dark'] .highlight-yellow { background: #5a4800 !important; color: #ffd54f !important; }
+[data-theme='dark'] .highlight-pink { background: #5a2030 !important; color: #ffb0c8 !important; }
+[data-theme='dark'] .highlight-green { background: #1a3a15 !important; color: #b0ff90 !important; }
+[data-theme='dark'] .highlight-blue { background: #1a2a4a !important; color: #90d4ff !important; }
+[data-theme='dark'] .highlight-orange { background: #4a2a10 !important; color: #ffb860 !important; }
