@@ -2766,3 +2766,336 @@
     margin-top: 0.35rem;
   }
 }
+
+/* ── Auto-save Indicator ── */
+
+.auto-save-indicator {
+  position: fixed;
+  bottom: 2rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 20px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 400;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.auto-save-indicator--saving {
+  background: #2c2416;
+  color: #ffd54f;
+}
+
+.auto-save-indicator--saved {
+  background: #2d6a22;
+  color: white;
+}
+
+.auto-save-indicator--error {
+  background: #9b2226;
+  color: white;
+}
+
+.auto-save-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+[data-theme='dark'] .auto-save-indicator--saving { background: #4a3a20; }
+
+/* ── Template Selector ── */
+
+.template-selector {
+  padding: 1.5rem 1.75rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.template-selector h3 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  color: var(--accent-dark);
+}
+
+.template-selector__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem;
+}
+
+.template-selector__card {
+  background: #f0ece4;
+  border: 1px solid #e8e4dc;
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.template-selector__card:hover {
+  background: #e8dfd5;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.template-selector__card strong {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.template-selector__card small {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .template-selector__card {
+  background: #3a2028;
+  border-color: #4a2a35;
+}
+[data-theme='dark'] .template-selector__card:hover {
+  background: #4a2a35;
+  border-color: var(--accent);
+}
+
+/* ── Share QR Code ── */
+
+.btn-share-qr {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-share-qr:hover {
+  background: var(--accent-dark);
+  transform: scale(1.05);
+}
+
+.share-qr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.share-qr-modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.share-qr-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e8e4dc;
+  background: #f8f6f1;
+}
+
+.share-qr-modal__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.btn-close:hover {
+  color: var(--text);
+}
+
+.share-qr-modal__body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.share-qr__qr {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.share-qr__qr img {
+  width: 240px;
+  height: 240px;
+  border: 2px solid #e8e4dc;
+  border-radius: 8px;
+}
+
+.share-qr__hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.share-qr__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-qr__link label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.share-qr__link-box {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.share-qr__link-input {
+  flex: 1;
+  border: 1px solid #ccc5b9;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-copy-link {
+  background: #e8e4dc;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-copy-link:hover {
+  background: #ddd8cf;
+}
+
+.share-qr__social {
+  border-top: 1px solid #e8e4dc;
+  padding-top: 1rem;
+}
+
+.share-qr__social p {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.share-qr__social-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-social {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.15s;
+}
+
+.btn-social:hover {
+  transform: translateY(-2px);
+}
+
+.btn-social--line {
+  background: #00b900;
+  color: white;
+}
+
+.btn-social--line:hover {
+  opacity: 0.9;
+}
+
+.btn-social--copy {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-social--copy:hover {
+  opacity: 0.9;
+}
+
+[data-theme='dark'] .share-qr-modal__header { background: #3a2028; }
+[data-theme='dark'] .share-qr__link-input { background: #2a1520; color: var(--text); border-color: #5a3040; }
+[data-theme='dark'] .btn-copy-link { background: #4a2a35; color: var(--text); }
+[data-theme='dark'] .btn-copy-link:hover { background: #5a3a45; }
+
+@media (max-width: 600px) {
+  .auto-save-indicator {
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 0.82rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .template-selector__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .share-qr-modal {
+    max-width: 100%;
+  }
+
+  .share-qr__qr img {
+    width: 180px;
+    height: 180px;
+  }
+}

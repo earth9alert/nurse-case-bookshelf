@@ -1,38 +1,53 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import type { SurgicalCase } from '../types/case'
 
-type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
-export function useAutoSave(onSave: () => Promise<void>, debounceMs = 1000) {
+export interface UseAutoSaveOptions {
+  debounceMs?: number
+  autoHideAfterMs?: number
+}
+
+export function useAutoSave(
+  case_: SurgicalCase | undefined,
+  onSave: (c: SurgicalCase) => void,
+  options: UseAutoSaveOptions = {}
+) {
+  const { debounceMs = 1000, autoHideAfterMs = 2000 } = options
   const [status, setStatus] = useState<SaveStatus>('idle')
-  const [lastError, setLastError] = useState<string | null>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Debounce auto-save
   useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current)
+    if (!case_) {
+      setStatus('idle')
+      return
     }
-  }, [])
 
-  const triggerSave = useCallback(async () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
 
-    debounceRef.current = setTimeout(async () => {
-      try {
-        setStatus('saving')
-        setLastError(null)
-        await onSave()
-        setStatus('saved')
-        // Show "saved" status for 1.5 seconds
-        savedTimeoutRef.current = setTimeout(() => setStatus('idle'), 1500)
-      } catch (error) {
-        setStatus('error')
-        setLastError(error instanceof Error ? error.message : 'Unknown error')
-      }
+    timeoutRef.current = setTimeout(() => {
+      setStatus('saving')
+      // Simulate async save
+      saveTimeoutRef.current = setTimeout(() => {
+        try {
+          onSave(case_)
+          setStatus('saved')
+          // Auto-hide after delay
+          setTimeout(() => setStatus('idle'), autoHideAfterMs)
+        } catch {
+          setStatus('error')
+          setTimeout(() => setStatus('idle'), autoHideAfterMs)
+        }
+      }, 300)
     }, debounceMs)
-  }, [onSave, debounceMs])
 
-  return { status, lastError, triggerSave }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    }
+  }, [case_, onSave, debounceMs, autoHideAfterMs])
+
+  return { status }
 }
