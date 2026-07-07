@@ -39,7 +39,34 @@ export function exportBackup(cases: SurgicalCase[]): string {
   return fileName
 }
 
-// ── Import ───────────────────────────────────────────────────────────────────
+// ── Export single case ────────────────────────────────────────────────────
+
+export function exportSingleCase(surgicalCase: SurgicalCase): string {
+  const payload: BackupFile = {
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    cases: [surgicalCase],
+  }
+
+  const json = JSON.stringify(payload, null, 2)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+
+  // Sanitize filename
+  const safeName = surgicalCase.title
+    .replace(/[^a-zA-Z0-9ก-๙\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 40)
+  const fileName = `case-${safeName}.json`
+
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+
+  return fileName
+}
 
 export interface ImportResult {
   ok: true

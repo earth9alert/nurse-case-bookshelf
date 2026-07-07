@@ -9,6 +9,8 @@ import { SearchBar } from './components/SearchBar'
 import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
 import { useDarkMode } from './hooks/useDarkMode'
+import { useStorageWarning } from './hooks/useStorageWarning'
+import { exportSingleCase } from './utils/backup'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
@@ -16,9 +18,10 @@ import './App.css'
 type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory'
 
 function App() {
-  const { cases, resetToSample, upsertCase, deleteCase, importCases } = useCases()
+  const { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase } = useCases()
   const { categories, upsertCategory, deleteCategory, reorderCategories } = useCategories()
   const { dark, toggle: toggleDark } = useDarkMode()
+  const storage = useStorageWarning()
 
   const [view, setView] = useState<View>('lobby')
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
@@ -80,6 +83,16 @@ function App() {
 
   return (
     <div className="app">
+      {/* ── Storage warning banner ── */}
+      {storage.level !== 'ok' && (
+        <div className={`storage-banner storage-banner--${storage.level}`} role="alert">
+          <span>
+            {storage.level === 'critical'
+              ? `⚠️ พื้นที่เก็บข้อมูลเต็มเกือบแล้ว (${storage.usedMB} MB / ~5 MB) — กรุณาสำรองข้อมูลและลบรูปที่ไม่จำเป็นออก`
+              : `⚡ ใช้พื้นที่ไปแล้ว ${storage.usedMB} MB (${storage.pct}%) — แนะนำให้สำรองข้อมูลไว้`}
+          </span>
+        </div>
+      )}
       <header className="app-header">
         <div className="app-header__brand">
           {view !== 'lobby' && (
@@ -239,6 +252,22 @@ function App() {
                     <div className="case-list__actions">
                       <button type="button" onClick={() => openEditor(c)} aria-label={`แก้ไขเคส ${c.title}`}>
                         แก้ไข
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => duplicateCase(c.id)}
+                        aria-label={`คัดลอกเคส ${c.title}`}
+                        title="คัดลอก"
+                      >
+                        📋
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => exportSingleCase(c)}
+                        aria-label={`ส่งออกเคส ${c.title}`}
+                        title="ส่งออก / แชร์"
+                      >
+                        📤
                       </button>
                       <button
                         type="button"

@@ -2258,3 +2258,46 @@
   .btn-print { padding: 0.35rem 0.5rem; font-size: 1rem; }
   .case-reader__header-end { gap: 0.5rem; }
 }
+
+/* ── Storage Warning Banner ── */
+
+.storage-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.storage-banner--warn {
+  background: #fff8e1;
+  color: #7a5800;
+  border-bottom: 1px solid #ffe082;
+}
+
+.storage-banner--critical {
+  background: #fde8e8;
+  color: #9b2226;
+  border-bottom: 1px solid #f5a0a3;
+  animation: pulse-bg 2s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+  0%, 100% { background: #fde8e8; }
+  50%       { background: #fcc8ca; }
+}
+
+[data-theme='dark'] .storage-banner--warn {
+  background: #3a2e00;
+  color: #ffd54f;
+  border-bottom-color: #5a4800;
+}
+
+[data-theme='dark'] .storage-banner--critical {
+  background: #4a1015;
+  color: #ff8a8a;
+  border-bottom-color: #7a1520;
+}

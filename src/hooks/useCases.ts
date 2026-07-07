@@ -79,5 +79,22 @@ export function useCases() {
     })
   }, [])
 
-  return { cases, resetToSample, upsertCase, deleteCase, importCases }
+  const duplicateCase = useCallback((id: string) => {
+    setCases((prev) => {
+      const original = prev.find((c) => c.id === id)
+      if (!original) return prev
+      const copy: SurgicalCase = {
+        ...original,
+        id: crypto.randomUUID(),
+        title: `${original.title} (สำเนา)`,
+        updatedAt: new Date().toISOString(),
+      }
+      const idx = prev.findIndex((c) => c.id === id)
+      const next = [...prev]
+      next.splice(idx + 1, 0, copy)
+      return next
+    })
+  }, [])
+
+  return { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase }
 }
