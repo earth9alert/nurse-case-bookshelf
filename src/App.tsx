@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Bookshelf } from './components/Bookshelf'
 import { CaseEditor } from './components/CaseEditor'
 import { CaseReader } from './components/CaseReader'
+import { CasePrintView } from './components/CasePrintView'
 import { BackupRestore } from './components/BackupRestore'
 import { CategoryLobby } from './components/CategoryLobby'
 import { CategoryEditor } from './components/CategoryEditor'
@@ -10,12 +11,11 @@ import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useStorageWarning } from './hooks/useStorageWarning'
-import { exportSingleCase } from './utils/backup'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
 
-type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory'
+type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory' | 'print'
 
 function App() {
   const { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase } = useCases()
@@ -28,6 +28,7 @@ function App() {
   const [selectedCase, setSelectedCase] = useState<SurgicalCase | null>(null)
   const [editingCase, setEditingCase] = useState<SurgicalCase | undefined>(undefined)
   const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined)
+  const [printCase, setPrintCase] = useState<SurgicalCase | null>(null)
   const [lobbyQuery, setLobbyQuery] = useState('')
   const [roomQuery, setRoomQuery] = useState('')
 
@@ -263,9 +264,9 @@ function App() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => exportSingleCase(c)}
-                        aria-label={`ส่งออกเคส ${c.title}`}
-                        title="ส่งออก / แชร์"
+                        onClick={() => { setPrintCase(c); setView('print') }}
+                        aria-label={`ส่งออก PDF เคส ${c.title}`}
+                        title="บันทึก PDF / แชร์"
                       >
                         📤
                       </button>
@@ -344,6 +345,16 @@ function App() {
           onCancel={() => {
             setView('lobby')
             setEditingCategory(undefined)
+          }}
+        />
+      )}
+      {/* ── Print / PDF View ── */}
+      {view === 'print' && printCase && (
+        <CasePrintView
+          surgicalCase={printCase}
+          onClose={() => {
+            setView('room')
+            setPrintCase(null)
           }}
         />
       )}
