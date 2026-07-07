@@ -162,20 +162,31 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
               {totalImages > 0 && ` · 🖼 ${totalImages} รูป`}
             </span>
           </div>
-          <div
-            className="read-progress"
-            role="progressbar"
-            aria-valuenow={readCount}
-            aria-valuemin={0}
-            aria-valuemax={totalSections}
-            aria-label={`อ่านแล้ว ${readCount} จาก ${totalSections} หัวข้อ`}
-          >
-            <div className="read-progress__bar">
-              <div className="read-progress__fill" style={{ width: `${(readCount / totalSections) * 100}%` }} />
+          <div className="case-reader__header-end">
+            <button
+              type="button"
+              className="btn-print"
+              onClick={() => window.print()}
+              aria-label="พิมพ์เคสนี้"
+              title="พิมพ์ / บันทึก PDF"
+            >
+              🖨️
+            </button>
+            <div
+              className="read-progress"
+              role="progressbar"
+              aria-valuenow={readCount}
+              aria-valuemin={0}
+              aria-valuemax={totalSections}
+              aria-label={`อ่านแล้ว ${readCount} จาก ${totalSections} หัวข้อ`}
+            >
+              <div className="read-progress__bar">
+                <div className="read-progress__fill" style={{ width: `${(readCount / totalSections) * 100}%` }} />
+              </div>
+              <span className="read-progress__label">
+                {allRead ? '✓ อ่านครบแล้ว — พร้อมเข้าเคส' : `${readCount}/${totalSections} หัวข้อ`}
+              </span>
             </div>
-            <span className="read-progress__label">
-              {allRead ? '✓ อ่านครบแล้ว — พร้อมเข้าเคส' : `${readCount}/${totalSections} หัวข้อ`}
-            </span>
           </div>
         </header>
 

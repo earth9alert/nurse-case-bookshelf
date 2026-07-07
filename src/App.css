@@ -2118,3 +2118,143 @@
     display: none;
   }
 }
+
+/* ── Dark mode overrides for hardcoded colors ── */
+
+[data-theme='dark'] .app {
+  background:
+    radial-gradient(ellipse at 60% 0%, rgba(224, 122, 148, 0.08), transparent 55%),
+    radial-gradient(ellipse at 10% 80%, rgba(224, 122, 148, 0.04), transparent 50%),
+    var(--bg);
+}
+
+[data-theme='dark'] .case-list__item:hover { background: #3a2028; }
+[data-theme='dark'] .case-list li { border-bottom-color: #4a2a35; }
+[data-theme='dark'] .case-list { background: var(--surface); }
+[data-theme='dark'] .sections-guide__card { background: var(--surface); }
+[data-theme='dark'] .bookshelf__board {
+  background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood) 40%, var(--wood-dark) 100%);
+}
+[data-theme='dark'] .case-reader__content { background: var(--surface); }
+[data-theme='dark'] .editor-form { background: var(--surface); }
+[data-theme='dark'] .editor-form input,
+[data-theme='dark'] .editor-form textarea,
+[data-theme='dark'] .editor-form select { background: #2a1520; color: var(--text); border-color: #5a3040; }
+[data-theme='dark'] .rte-wrapper { background: #2a1520; border-color: #5a3040; }
+[data-theme='dark'] .rte-toolbar { background: #3a2030; border-bottom-color: #5a3040; }
+[data-theme='dark'] .rte-content { background: #2a1520; color: var(--text); }
+[data-theme='dark'] .rte-content:focus { background: #301825; }
+[data-theme='dark'] .search-bar__input { background: rgba(255,255,255,0.08); }
+[data-theme='dark'] .backup-modal { background: var(--surface); }
+[data-theme='dark'] .case-list__actions button { background: #4a2a35; color: var(--text); }
+[data-theme='dark'] .case-list__actions button.danger { background: #6a1a22; color: #ffaab0; }
+
+/* ── Theme toggle button ── */
+.btn-theme-toggle {
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.22);
+  border-radius: 20px;
+  padding: 0.35rem 0.65rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: #fdf0f4;
+  transition: background 0.15s;
+}
+
+.btn-theme-toggle:hover {
+  background: rgba(255,255,255,0.22);
+}
+
+/* ── Print button ── */
+.case-reader__header-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.btn-print {
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.22);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #fdf0f4;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-print:hover { background: rgba(255,255,255,0.25); }
+
+/* ── Print / PDF styles ── */
+@media print {
+  /* Hide everything except the case content */
+  .app-header,
+  .section-nav,
+  .case-reader__footer,
+  .btn-back,
+  .btn-print,
+  .anatomy-lightbox,
+  .backup-toast,
+  .backup-modal-overlay {
+    display: none !important;
+  }
+
+  /* Reset overlay to normal flow */
+  .case-reader-overlay {
+    position: static !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  .case-reader {
+    min-height: unset;
+  }
+
+  /* Show all section content for print */
+  .case-reader__content {
+    max-width: 100% !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Print header info */
+  .case-reader__header {
+    background: white !important;
+    color: black !important;
+    padding: 0 0 1rem !important;
+    border-bottom: 2px solid #333;
+    margin-bottom: 1rem;
+  }
+
+  .case-reader__title-block h1 { color: black !important; }
+  .case-reader__title-block p { color: #555 !important; }
+  .case-reader__meta { color: #777 !important; }
+  .read-progress { display: none; }
+
+  /* Images */
+  .anatomy-gallery__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .anatomy-gallery__item img {
+    max-height: 200px;
+  }
+
+  /* Page breaks */
+  .case-reader__content h2 {
+    page-break-before: auto;
+    page-break-after: avoid;
+  }
+
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Mobile: smaller theme toggle */
+@media (max-width: 600px) {
+  .btn-theme-toggle { padding: 0.3rem 0.5rem; font-size: 0.9rem; }
+  .btn-print { padding: 0.35rem 0.5rem; font-size: 1rem; }
+  .case-reader__header-end { gap: 0.5rem; }
+}

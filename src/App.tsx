@@ -8,6 +8,7 @@ import { CategoryEditor } from './components/CategoryEditor'
 import { SearchBar } from './components/SearchBar'
 import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
+import { useDarkMode } from './hooks/useDarkMode'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
@@ -17,6 +18,7 @@ type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory'
 function App() {
   const { cases, resetToSample, upsertCase, deleteCase, importCases } = useCases()
   const { categories, upsertCategory, deleteCategory, reorderCategories } = useCategories()
+  const { dark, toggle: toggleDark } = useDarkMode()
 
   const [view, setView] = useState<View>('lobby')
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
@@ -116,6 +118,15 @@ function App() {
                 id="room-search"
               />
             )}
+            <button
+              type="button"
+              className="btn-theme-toggle"
+              onClick={toggleDark}
+              aria-label={dark ? 'เปลี่ยนเป็น Light mode' : 'เปลี่ยนเป็น Dark mode'}
+              title={dark ? 'Light mode' : 'Dark mode'}
+            >
+              {dark ? '☀️' : '🌙'}
+            </button>
             <BackupRestore cases={cases} onImport={importCases} />
             {view === 'room' && (
               <>

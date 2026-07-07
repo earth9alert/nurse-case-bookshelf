@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Auto Push to Vercel",
+  "description": "เมื่อผู้ใช้พูดถึงการ push หรืออัปเดต Vercel ให้ Kiro git add, commit และ push ให้อัตโนมัติ",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "ถ้า user message เกี่ยวกับการ push, deploy, หรืออัปเดต Vercel สำหรับโปรเจกต์ nurse-case-bookshelf ให้รัน git add -A, git commit พร้อม message สรุปสิ่งที่เปลี่ยน และ git push ใน working directory e:\\Antigravity code\\nurse-case-bookshelf ทันที โดยไม่ต้องถามซ้ำ"
+  }
+}

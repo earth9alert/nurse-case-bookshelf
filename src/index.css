@@ -17,6 +17,22 @@
   --font: 'Sarabun', 'IBM Plex Sans Thai', system-ui, sans-serif;
 }
 
+/* ── Dark mode ── */
+[data-theme='dark'] {
+  --bg: #1a0f14;
+  --bg-dark: #2a1520;
+  --surface: #251419;
+  --text: #f0dde4;
+  --text-muted: #c4a0ae;
+  --accent: #e07a94;
+  --accent-dark: #c2607a;
+  --accent-soft: #4a2030;
+  --wood: #c49a7a;
+  --wood-light: #e0b895;
+  --wood-dark: #a07050;
+  --shelf-shadow: rgba(0, 0, 0, 0.45);
+}
+
 *,
 *::before,
 *::after {
@@ -31,6 +47,7 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.65;
+  transition: background 0.25s, color 0.25s;
 }
 
 #root {
