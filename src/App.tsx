@@ -113,16 +113,6 @@ function App() {
 
   return (
     <div className="app">
-      {/* ── Storage warning banner ── */}
-      {storage.level !== 'ok' && (
-        <div className={`storage-banner storage-banner--${storage.level}`} role="alert">
-          <span>
-            {storage.level === 'critical'
-              ? `⚠️ พื้นที่เก็บข้อมูลเต็มเกือบแล้ว (${storage.usedMB} MB / ~5 MB) — กรุณาสำรองข้อมูลและลบรูปที่ไม่จำเป็นออก`
-              : `⚡ ใช้พื้นที่ไปแล้ว ${storage.usedMB} MB (${storage.pct}%) — แนะนำให้สำรองข้อมูลไว้`}
-          </span>
-        </div>
-      )}
       <header className="app-header">
         <div className="app-header__brand">
           {view !== 'lobby' && (

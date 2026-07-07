@@ -12,9 +12,6 @@ export function StatisticsDashboard({
   categories,
   storageUsedMB,
 }: StatisticsDashboardProps) {
-  const storagePercent = Math.round((storageUsedMB / 5) * 100) // 5MB limit
-  const storageWarning = storagePercent >= 70
-
   return (
     <section className="stats-dashboard">
       <h3>📊 สถิติ</h3>
@@ -33,31 +30,10 @@ export function StatisticsDashboard({
           <span className="stats-card__value">{stats.totalCategories}</span>
           <span className="stats-card__label">ห้อง/หมวด</span>
         </div>
-        <div className={`stats-card ${storageWarning ? 'stats-card--warning' : ''}`}>
+        <div className="stats-card">
           <span className="stats-card__value">{storageUsedMB}MB</span>
           <span className="stats-card__label">พื้นที่ใช้</span>
         </div>
-      </div>
-
-      {/* Storage bar */}
-      <div className="stats-storage">
-        <div className="stats-storage__bar">
-          <div
-            className="stats-storage__fill"
-            style={{
-              width: `${Math.min(storagePercent, 100)}%`,
-              background:
-                storagePercent >= 90
-                  ? '#c2607a'
-                  : storagePercent >= 70
-                    ? '#e07a94'
-                    : '#6bbf59',
-            }}
-          />
-        </div>
-        <span className="stats-storage__label">
-          {storagePercent}% (ขีดจำกัด ~5 MB)
-        </span>
       </div>
 
       {/* Per-category breakdown */}
