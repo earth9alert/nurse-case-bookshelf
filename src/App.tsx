@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bookshelf } from './components/Bookshelf'
 import { CaseEditor } from './components/CaseEditor'
 import { CaseReader } from './components/CaseReader'
@@ -7,10 +7,15 @@ import { BackupRestore } from './components/BackupRestore'
 import { CategoryLobby } from './components/CategoryLobby'
 import { CategoryEditor } from './components/CategoryEditor'
 import { SearchBar } from './components/SearchBar'
+import { SearchContent } from './components/SearchContent'
+import { RecentCasesPanel } from './components/RecentCasesPanel'
+import { StatisticsDashboard } from './components/StatisticsDashboard'
 import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useStorageWarning } from './hooks/useStorageWarning'
+import { useRecentCases } from './hooks/useRecentCases'
+import { useStatistics } from './hooks/useStatistics'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
@@ -22,6 +27,8 @@ function App() {
   const { categories, upsertCategory, deleteCategory, reorderCategories } = useCategories()
   const { dark, toggle: toggleDark } = useDarkMode()
   const storage = useStorageWarning()
+  const { recentCases, addRecent, clearRecent } = useRecentCases()
+  const stats = useStatistics(cases, categories)
 
   const [view, setView] = useState<View>('lobby')
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
@@ -32,18 +39,39 @@ function App() {
   const [lobbyQuery, setLobbyQuery] = useState('')
   const [roomQuery, setRoomQuery] = useState('')
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+F / Cmd+F → focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        if (view === 'lobby') document.getElementById('lobby-search')?.focus()
+        if (view === 'room') document.getElementById('room-search')?.focus()
+      }
+      // D → toggle dark mode
+      if (e.key === 'd' && !e.ctrlKey && !e.metaKey && document.activeElement?.tagName !== 'INPUT') {
+        toggleDark()
+      }
+      // Escape → go back to lobby/room
+      if (e.key === 'Escape') {
+        if (view === 'read') {
+          setView('room')
+          setSelectedCase(null)
+        } else if (view !== 'lobby') {
+          setView('lobby')
+          setActiveCategoryId(null)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [view, toggleDark])
+
   const activeCategory = categories.find((c) => c.id === activeCategoryId) ?? null
   const roomCases = cases.filter((c) => c.categoryId === activeCategoryId)
 
   // filtered lists
   const normalize = (s: string) => s.toLowerCase().trim()
-  const lobbyResults = lobbyQuery.trim()
-    ? cases.filter(
-        (c) =>
-          normalize(c.title).includes(normalize(lobbyQuery)) ||
-          normalize(c.subtitle).includes(normalize(lobbyQuery)),
-      )
-    : []
   const filteredRoomCases = roomQuery.trim()
     ? roomCases.filter(
         (c) =>
@@ -54,6 +82,7 @@ function App() {
 
   const openCase = (surgicalCase: SurgicalCase) => {
     setSelectedCase(surgicalCase)
+    addRecent(surgicalCase)
     setView('read')
   }
 
@@ -165,54 +194,48 @@ function App() {
       {/* ── Lobby ── */}
       {view === 'lobby' && (
         <main className="app-main">
-          {/* Global search results */}
-          {lobbyQuery.trim() && (
-            <section className="search-results">
-              <p className="search-results__meta">
-                {lobbyResults.length > 0
-                  ? `พบ ${lobbyResults.length} เคสที่ตรงกับ "${lobbyQuery}"`
-                  : `ไม่พบเคสที่ตรงกับ "${lobbyQuery}"`}
-              </p>
-              {lobbyResults.length > 0 && (
-                <ul className="case-list__ul">
-                  {lobbyResults.map((c) => {
-                    const cat = categories.find((ct) => ct.id === c.categoryId)
-                    return (
-                      <li key={c.id}>
-                        <button
-                          type="button"
-                          className="case-list__item"
-                          onClick={() => {
-                            setActiveCategoryId(c.categoryId)
-                            openCase(c)
-                          }}
-                        >
-                          <span className="case-list__dot" style={{ background: c.color }} />
-                          <span>
-                            <strong>{c.title}</strong>
-                            <small>
-                              {cat ? `${cat.icon} ${cat.name}` : ''}{c.subtitle ? ` · ${c.subtitle}` : ''}
-                            </small>
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </section>
-          )}
+          {/* Global content search */}
+          <SearchContent
+            query={lobbyQuery}
+            cases={cases}
+            categories={categories}
+            onSelectCase={(c) => {
+              setActiveCategoryId(c.categoryId)
+              openCase(c)
+            }}
+          />
 
           {!lobbyQuery.trim() && (
-            <CategoryLobby
-              categories={categories}
-              cases={cases}
-              onEnterRoom={(id) => { setActiveCategoryId(id); setView('room') }}
-              onAddCategory={() => { setEditingCategory(undefined); setView('editCategory') }}
-              onEditCategory={(cat) => { setEditingCategory(cat); setView('editCategory') }}
-              onDeleteCategory={handleDeleteCategory}
-              onReorder={reorderCategories}
-            />
+            <>
+              {/* Recent cases */}
+              <RecentCasesPanel
+                recentCases={recentCases}
+                allCases={cases}
+                onSelectCase={(c) => {
+                  setActiveCategoryId(c.categoryId)
+                  openCase(c)
+                }}
+                onClearRecent={clearRecent}
+              />
+
+              {/* Statistics */}
+              <StatisticsDashboard
+                stats={stats}
+                categories={categories}
+                storageUsedMB={storage.usedMB}
+              />
+
+              {/* Category lobby */}
+              <CategoryLobby
+                categories={categories}
+                cases={cases}
+                onEnterRoom={(id) => { setActiveCategoryId(id); setView('room') }}
+                onAddCategory={() => { setEditingCategory(undefined); setView('editCategory') }}
+                onEditCategory={(cat) => { setEditingCategory(cat); setView('editCategory') }}
+                onDeleteCategory={handleDeleteCategory}
+                onReorder={reorderCategories}
+              />
+            </>
           )}
         </main>
       )}

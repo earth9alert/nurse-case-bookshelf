@@ -36,6 +36,21 @@ export interface SurgicalCase {
   draping: string
   steps: string              // rich text HTML (was string[] in older versions)
   images: SectionImages      // all section photos in one place
+  isFavorite?: boolean       // Feature 3: Favorites/Bookmarks
+  personaNotes?: string      // Feature 7: Notes/Annotations
+  templateId?: string        // Feature 10: Case Templates
+}
+
+export interface RecentCase {
+  caseId: string
+  visitedAt: string          // ISO-8601 timestamp
+}
+
+export interface AppStats {
+  totalCases: number
+  totalImages: number
+  casesRead: number
+  storageUsed: number        // in KB
 }
 
 export const UNCATEGORIZED_ID = '__uncategorized__'

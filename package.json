@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "docx": "^8.5.14",
     "html2pdf.js": "^0.14.0",
+    "qrcode.react": "^4.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

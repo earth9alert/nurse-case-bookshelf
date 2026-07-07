@@ -3,9 +3,10 @@ interface SearchBarProps {
   onChange: (q: string) => void
   placeholder?: string
   id: string
+  onKeyDown?: (e: React.KeyboardEvent) => void
 }
 
-export function SearchBar({ query, onChange, placeholder = 'ค้นหา...', id }: SearchBarProps) {
+export function SearchBar({ query, onChange, placeholder = 'ค้นหา...', id, onKeyDown }: SearchBarProps) {
   return (
     <div className="search-bar" role="search">
       <label htmlFor={id} className="search-bar__label">
@@ -17,6 +18,7 @@ export function SearchBar({ query, onChange, placeholder = 'ค้นหา...',
         className="search-bar__input"
         value={query}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         autoComplete="off"
         spellCheck={false}
