@@ -4,6 +4,7 @@ import { CaseEditor } from './components/CaseEditor'
 import { CaseReader } from './components/CaseReader'
 import { CasePrintView } from './components/CasePrintView'
 import { BackupRestore } from './components/BackupRestore'
+import { BackupRecovery } from './components/BackupRecovery'
 import { CategoryLobby } from './components/CategoryLobby'
 import { CategoryEditor } from './components/CategoryEditor'
 import { SearchBar } from './components/SearchBar'
@@ -16,6 +17,7 @@ import { useDarkMode } from './hooks/useDarkMode'
 import { useStorageWarning } from './hooks/useStorageWarning'
 import { useRecentCases } from './hooks/useRecentCases'
 import { useStatistics } from './hooks/useStatistics'
+import { useAutoBackup } from './hooks/useAutoBackup'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
@@ -29,6 +31,9 @@ function App() {
   const storage = useStorageWarning()
   const { recentCases, addRecent, clearRecent } = useRecentCases()
   const stats = useStatistics(cases, categories)
+  
+  // Auto-backup every 30 minutes
+  useAutoBackup(cases)
 
   const [view, setView] = useState<View>('lobby')
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
@@ -160,6 +165,7 @@ function App() {
             >
               {dark ? '☀️' : '🌙'}
             </button>
+            <BackupRecovery onRestore={importCases} />
             <BackupRestore 
               cases={cases} 
               onImport={importCases}
