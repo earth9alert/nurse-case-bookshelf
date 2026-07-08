@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { sampleCases } from '../data/sampleCases'
 import type { SurgicalCase } from '../types/case'
 import { validateCase } from '../utils/caseValidator'
+import { loadCasesFromIDB, saveCasesToIDB } from './useIndexedDB'
 
 const STORAGE_KEY = 'nurse-case-bookshelf-cases'
 const SAVE_DEBOUNCE_MS = 500
@@ -46,13 +47,33 @@ function saveCases(cases: SurgicalCase[]): void {
       console.error('[useCases] Storage full and cleanup failed')
     }
   }
+
+  // Also save to IndexedDB for better persistence
+  saveCasesToIDB(cases)
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────
 
 export function useCases() {
   const [cases, setCases] = useState<SurgicalCase[]>(loadCases)
+  const [isInitialized, setIsInitialized] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Try to load from IndexedDB if localStorage is empty
+  useEffect(() => {
+    if (!isInitialized && cases.length === sampleCases.length) {
+      // Only try IndexedDB if we're still on sample data
+      loadCasesFromIDB().then((idbCases) => {
+        if (idbCases.length > 0) {
+          console.log('[useCases] Restored cases from IndexedDB')
+          setCases(idbCases)
+        }
+        setIsInitialized(true)
+      })
+    } else {
+      setIsInitialized(true)
+    }
+  }, [])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
