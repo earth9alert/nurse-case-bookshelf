@@ -30,6 +30,22 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
     setTimeout(() => setExportState({ status: 'idle' }), 8000)
   }
 
+  const handleCopyToClipboard = async () => {
+    try {
+      const backupData = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        cases: cases,
+      }
+      const json = JSON.stringify(backupData, null, 2)
+      await navigator.clipboard.writeText(json)
+      setExportState({ status: 'done', fileName: 'copied-to-clipboard' })
+      setTimeout(() => setExportState({ status: 'idle' }), 3000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+  }
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -76,6 +92,15 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
         </button>
         <button
           type="button"
+          className="btn-backup"
+          onClick={handleCopyToClipboard}
+          title="คัดลอก JSON ไปยังคลิปบอร์ด"
+          aria-label="คัดลอกข้อมูล JSON"
+        >
+          📋 คัดลอก
+        </button>
+        <button
+          type="button"
           className="btn-restore"
           onClick={() => fileInputRef.current?.click()}
           aria-label="นำเข้าข้อมูลจากไฟล์ backup"
@@ -95,11 +120,22 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
       {exportState.status === 'done' && (
         <div className="backup-toast backup-toast--export" role="status">
           <div className="backup-toast__body">
-            <span className="backup-toast__title">💾 บันทึกไฟล์แล้ว</span>
-            <span className="backup-toast__filename">{exportState.fileName}</span>
-            <span className="backup-toast__hint">
-              ดูได้ที่โฟลเดอร์ Downloads ในเครื่องของคุณ
+            <span className="backup-toast__title">
+              {exportState.fileName === 'copied-to-clipboard' ? '📋 คัดลอกแล้ว' : '💾 บันทึกไฟล์แล้ว'}
             </span>
+            {exportState.fileName !== 'copied-to-clipboard' && (
+              <>
+                <span className="backup-toast__filename">{exportState.fileName}</span>
+                <span className="backup-toast__hint">
+                  ดูได้ที่โฟลเดอร์ Downloads ในเครื่องของคุณ
+                </span>
+              </>
+            )}
+            {exportState.fileName === 'copied-to-clipboard' && (
+              <span className="backup-toast__hint">
+                JSON อยู่ในคลิปบอร์ด — paste ได้ที่ editor หรือบันทึกเป็นไฟล์
+              </span>
+            )}
           </div>
           <button
             type="button"
