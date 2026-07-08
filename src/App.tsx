@@ -166,7 +166,17 @@ function App() {
               {dark ? '☀️' : '🌙'}
             </button>
             <BackupRecovery onRestore={importCases} />
-            <BackupRestore cases={cases} onImport={importCases} />
+            <BackupRestore 
+              cases={cases} 
+              onImport={importCases}
+              onNavigate={(v) => {
+                if (v === 'lobby') {
+                  setView('lobby')
+                  setActiveCategoryId(null)
+                  setRoomQuery('')
+                }
+              }}
+            />
             {view === 'room' && (
               <>
                 <button type="button" className="btn-secondary" onClick={() => openEditor()}>

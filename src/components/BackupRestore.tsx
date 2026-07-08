@@ -4,7 +4,8 @@ import { exportBackup, importBackup } from '../utils/backup'
 
 interface BackupRestoreProps {
   cases: SurgicalCase[]
-  onImport: (cases: SurgicalCase[], merge: boolean) => void
+  onImport: (cases: SurgicalCase[], merge?: boolean) => void
+  onNavigate?: (view: 'lobby') => void
 }
 
 type ImportState =
@@ -17,7 +18,7 @@ type ExportState =
   | { status: 'idle' }
   | { status: 'done'; fileName: string }
 
-export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
+export function BackupRestore({ cases, onImport, onNavigate }: BackupRestoreProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importState, setImportState] = useState<ImportState>({ status: 'idle' })
   const [exportState, setExportState] = useState<ExportState>({ status: 'idle' })
@@ -68,12 +69,22 @@ export function BackupRestore({ cases, onImport }: BackupRestoreProps) {
     if (importState.status !== 'confirm') return
     onImport(importState.cases, false)
     setImportState({ status: 'success', count: importState.cases.length })
+    // Navigate to lobby after 1.5s
+    setTimeout(() => {
+      onNavigate?.('lobby')
+      setImportState({ status: 'idle' })
+    }, 1500)
   }
 
   const handleConfirmMerge = () => {
     if (importState.status !== 'confirm') return
     onImport(importState.cases, true)
     setImportState({ status: 'success', count: importState.cases.length })
+    // Navigate to lobby after 1.5s
+    setTimeout(() => {
+      onNavigate?.('lobby')
+      setImportState({ status: 'idle' })
+    }, 1500)
   }
 
   const handleDismiss = () => setImportState({ status: 'idle' })
