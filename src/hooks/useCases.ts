@@ -49,7 +49,9 @@ function saveCases(cases: SurgicalCase[]): void {
   }
 
   // Also save to IndexedDB for better persistence
-  saveCasesToIDB(cases)
+  saveCasesToIDB(cases).catch((err) => {
+    console.error('[useCases] IndexedDB save error:', err)
+  })
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────

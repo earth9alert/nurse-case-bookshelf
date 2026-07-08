@@ -5,37 +5,6 @@ const DB_NAME = 'NurseCaseBookshelf'
 const STORE_NAME = 'cases'
 const DB_VERSION = 1
 
-// Sanitize string for IndexedDB (remove problematic characters)
-function sanitizeString(str: string): string {
-  if (typeof str !== 'string') return String(str)
-  // Remove control characters and other problematic chars
-  return str
-    .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
-    .replace(/[\uFFFD]/g, '') // Remove replacement character
-    .normalize('NFC') // Normalize Unicode
-}
-
-// Sanitize case data for IndexedDB storage
-function sanitizeCase(caseData: SurgicalCase): SurgicalCase {
-  return {
-    ...caseData,
-    title: sanitizeString(caseData.title),
-    subtitle: sanitizeString(caseData.subtitle),
-    dx: sanitizeString(caseData.dx),
-    operation: sanitizeString(caseData.operation),
-    anatomy: sanitizeString(caseData.anatomy),
-    roomSetup: sanitizeString(caseData.roomSetup),
-    positioning: sanitizeString(caseData.positioning),
-    draping: sanitizeString(caseData.draping),
-    steps: sanitizeString(caseData.steps),
-    equipment: {
-      store: (caseData.equipment.store || []).map(sanitizeString),
-      room: (caseData.equipment.room || []).map(sanitizeString),
-      basket: (caseData.equipment.basket || []).map(sanitizeString),
-    },
-  }
-}
-
 // Initialize IndexedDB
 function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -66,12 +35,11 @@ export async function saveCasesToIDB(cases: SurgicalCase[]): Promise<void> {
       store.clear().onerror = () => reject(store.clear().error)
     })
 
-    // Add new data with sanitization
+    // Add new data (no sanitization - store as-is)
     for (const caseData of cases) {
-      const sanitized = sanitizeCase(caseData)
       await new Promise<void>((resolve, reject) => {
-        store.add(sanitized).onsuccess = () => resolve()
-        store.add(sanitized).onerror = () => reject(store.add(sanitized).error)
+        store.add(caseData).onsuccess = () => resolve()
+        store.add(caseData).onerror = () => reject(store.add(caseData).error)
       })
     }
 
