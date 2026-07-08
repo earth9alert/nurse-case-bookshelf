@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { AnatomyImageUpload } from './AnatomyImageUpload'
 import { RichTextEditor } from './RichTextEditor'
 import { TemplateSelector } from './TemplateSelector'
-import { AutoSaveIndicator } from './AutoSaveIndicator'
-import { useAutoSave } from '../hooks/useAutoSave'
 import type { AnatomyImage, Category, SectionKey, SurgicalCase } from '../types/case'
 import { UNCATEGORIZED_ID } from '../types/case'
 
@@ -51,26 +49,6 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
   const [roomText, setRoomText] = useState(arrayToLines(initial?.equipment.room ?? []))
   const [basketText, setBasketText] = useState(arrayToLines(initial?.equipment.basket ?? []))
   const [showTemplates, setShowTemplates] = useState(!initial) // show templates only for new case
-
-  // Auto-save: save every 2 seconds after changes
-  const { status: autoSaveStatus } = useAutoSave(form, (c) => {
-    // Auto-save only updates, not full save
-    const saveData = {
-      ...c,
-      updatedAt: new Date().toISOString(),
-      equipment: {
-        store: linesToArray(storeText),
-        room: linesToArray(roomText),
-        basket: linesToArray(basketText),
-      },
-    }
-    // You could persist to a temp storage or just show indicator
-    try {
-      localStorage.setItem(`auto-save-${c.id}`, JSON.stringify(saveData))
-    } catch {
-      /* ignore */
-    }
-  }, { debounceMs: 2000, autoHideAfterMs: 2000 })
 
   const update = <K extends keyof SurgicalCase>(key: K, value: SurgicalCase[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -134,9 +112,6 @@ export function CaseEditor({ initial, categories, defaultCategoryId, onSave, onC
             <TemplateSelector onSelectTemplate={handleSelectTemplate} />
           </div>
         )}
-
-        {/* Auto-save indicator */}
-        <AutoSaveIndicator status={autoSaveStatus} />
 
         {/* Meta */}
         <div className="editor-form__grid">
