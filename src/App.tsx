@@ -5,6 +5,7 @@ import { CaseReader } from './components/CaseReader'
 import { CasePrintView } from './components/CasePrintView'
 import { BackupRestore } from './components/BackupRestore'
 import { BackupRecovery } from './components/BackupRecovery'
+import { GoogleDriveBackup } from './components/GoogleDriveBackup'
 import { CategoryLobby } from './components/CategoryLobby'
 import { CategoryEditor } from './components/CategoryEditor'
 import { SearchBar } from './components/SearchBar'
@@ -165,6 +166,7 @@ function App() {
             >
               {dark ? '☀️' : '🌙'}
             </button>
+            <GoogleDriveBackup cases={cases} />
             <BackupRecovery onRestore={importCases} />
             <BackupRestore 
               cases={cases} 
