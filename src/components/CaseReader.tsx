@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AnatomyGallery } from './AnatomyGallery'
-import { ShareQRCode } from './ShareQRCode'
 import { SECTIONS, type SectionKey, type SurgicalCase } from '../types/case'
 
 interface CaseReaderProps {
@@ -164,7 +163,6 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
             </span>
           </div>
           <div className="case-reader__header-end">
-            <ShareQRCode surgicalCase={surgicalCase} />
             <button
               type="button"
               className="btn-print"
