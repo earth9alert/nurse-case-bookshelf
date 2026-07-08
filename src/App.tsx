@@ -9,13 +9,10 @@ import { CategoryEditor } from './components/CategoryEditor'
 import { SearchBar } from './components/SearchBar'
 import { SearchContent } from './components/SearchContent'
 import { RecentCasesPanel } from './components/RecentCasesPanel'
-import { StatisticsDashboard } from './components/StatisticsDashboard'
 import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
 import { useDarkMode } from './hooks/useDarkMode'
-import { useStorageWarning } from './hooks/useStorageWarning'
 import { useRecentCases } from './hooks/useRecentCases'
-import { useStatistics } from './hooks/useStatistics'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
@@ -26,9 +23,7 @@ function App() {
   const { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase } = useCases()
   const { categories, upsertCategory, deleteCategory, reorderCategories } = useCategories()
   const { dark, toggle: toggleDark } = useDarkMode()
-  const storage = useStorageWarning()
   const { recentCases, addRecent, clearRecent } = useRecentCases()
-  const stats = useStatistics(cases, categories)
 
   const [view, setView] = useState<View>('lobby')
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
@@ -216,13 +211,6 @@ function App() {
                   openCase(c)
                 }}
                 onClearRecent={clearRecent}
-              />
-
-              {/* Statistics */}
-              <StatisticsDashboard
-                stats={stats}
-                categories={categories}
-                storageUsedMB={storage.usedMB}
               />
 
               {/* Category lobby */}
