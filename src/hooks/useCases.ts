@@ -29,9 +29,22 @@ function loadCases(): SurgicalCase[] {
 function saveCases(cases: SurgicalCase[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
+    console.log(`[useCases] Saved ${cases.length} cases to localStorage`)
   } catch (err) {
     // QuotaExceededError or similar — warn without crashing
-    console.warn('[useCases] Could not persist to localStorage:', err)
+    console.error('[useCases] Could not persist to localStorage:', err)
+    // Try to free up space by removing old auto-backups
+    try {
+      const keys = Object.keys(localStorage)
+      const backupKeys = keys.filter((k) => k.startsWith('backup-')).sort()
+      if (backupKeys.length > 1) {
+        localStorage.removeItem(backupKeys[0])
+        console.log('[useCases] Removed old backup, retrying save...')
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
+      }
+    } catch {
+      console.error('[useCases] Storage full and cleanup failed')
+    }
   }
 }
 
@@ -69,7 +82,7 @@ export function useCases() {
     setCases((prev) => prev.filter((c) => c.id !== id))
   }, [])
 
-  const importCases = useCallback((incoming: SurgicalCase[], merge: boolean) => {
+  const importCases = useCallback((incoming: SurgicalCase[], merge?: boolean) => {
     setCases((prev) => {
       if (!merge) return incoming
       // Merge: incoming cases override existing ones with same id, new ones appended

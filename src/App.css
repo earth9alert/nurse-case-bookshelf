@@ -3099,3 +3099,122 @@
     height: 180px;
   }
 }
+
+/* ── Backup Recovery ── */
+
+.btn-backup-recovery {
+  background: rgba(107, 191, 89, 0.2);
+  color: #2d6a22;
+  border: 1px solid rgba(107, 191, 89, 0.4);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-backup-recovery:hover {
+  background: rgba(107, 191, 89, 0.35);
+}
+
+.backup-recovery-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.backup-recovery-modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.backup-recovery-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e8e4dc;
+  background: #f8f6f1;
+}
+
+.backup-recovery-modal__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.backup-recovery-modal__body {
+  padding: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.backup-recovery__empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.backup-recovery__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.backup-recovery__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem;
+  background: #f0ece4;
+  border: 1px solid #e8e4dc;
+  border-radius: 8px;
+}
+
+.backup-recovery__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.backup-recovery__info strong {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.backup-recovery__info small {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.btn-restore {
+  background: #2d6a22;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-restore:hover {
+  background: #1e4815;
+}
+
+[data-theme='dark'] .backup-recovery-modal__header { background: #3a2028; }
+[data-theme='dark'] .backup-recovery__item { background: #3a2028; border-color: #4a2a35; }
+[data-theme='dark'] .backup-recovery__info strong { color: #fce7f0; }
