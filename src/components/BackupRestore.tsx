@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { SurgicalCase } from '../types/case'
-import { exportBackup, importBackup } from '../utils/backup'
+import { exportBackup, exportBackupReadable, importBackup } from '../utils/backup'
 
 interface BackupRestoreProps {
   cases: SurgicalCase[]
@@ -28,6 +28,13 @@ export function BackupRestore({ cases, onImport, onNavigate }: BackupRestoreProp
     setImportState({ status: 'idle' }) // dismiss any import toast
     setExportState({ status: 'done', fileName })
     // Auto-dismiss after 8s
+    setTimeout(() => setExportState({ status: 'idle' }), 8000)
+  }
+
+  const handleExportReadable = () => {
+    const fileName = exportBackupReadable(cases)
+    setImportState({ status: 'idle' })
+    setExportState({ status: 'done', fileName })
     setTimeout(() => setExportState({ status: 'idle' }), 8000)
   }
 
@@ -96,19 +103,19 @@ export function BackupRestore({ cases, onImport, onNavigate }: BackupRestoreProp
           type="button"
           className="btn-backup"
           onClick={handleExport}
-          title={`สำรองข้อมูล ${cases.length} เคส`}
-          aria-label="สำรองข้อมูลทั้งหมดเป็นไฟล์ JSON"
+          title={`สำรองข้อมูลพร้อมรูปภาพ ${cases.length} เคส`}
+          aria-label="สำรองข้อมูลทั้งหมดเป็นไฟล์ JSON (พร้อมรูป)"
         >
-          💾 สำรองข้อมูล
+          💾 สำรองแบบเต็ม
         </button>
         <button
           type="button"
           className="btn-backup"
-          onClick={handleCopyToClipboard}
-          title="คัดลอก JSON ไปยังคลิปบอร์ด"
-          aria-label="คัดลอกข้อมูล JSON"
+          onClick={handleExportReadable}
+          title={`Export แบบอ่านง่าย (ไม่มีรูป)`}
+          aria-label="Export JSON แบบอ่านง่าย ไม่มีรูปภาพ"
         >
-          📋 คัดลอก
+          📄 Export อ่านง่าย
         </button>
         <button
           type="button"

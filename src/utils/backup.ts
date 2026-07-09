@@ -9,6 +9,47 @@ export interface BackupFile {
   cases: SurgicalCase[]
 }
 
+// ── Export (without images for readability) ──────────────────────────────
+
+export function exportBackupReadable(cases: SurgicalCase[]): string {
+  // Remove images to make JSON readable
+  const casesWithoutImages = cases.map(c => ({
+    ...c,
+    images: Object.keys(c.images).reduce((acc, key) => {
+      const imgs = c.images[key as keyof typeof c.images]
+      acc[key] = imgs ? `[${imgs.length} รูป]` : []
+      return acc
+    }, {} as any)
+  }))
+
+  const payload = {
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    note: 'ไฟล์นี้ไม่มีรูปภาพ - ใช้สำหรับอ่านข้อมูลเท่านั้น ไม่สามารถนำเข้ากลับได้',
+    totalCases: cases.length,
+    cases: casesWithoutImages,
+  }
+
+  const json = JSON.stringify(payload, null, 2)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+
+  const dateStr = new Date()
+    .toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    .replace(/\//g, '-')
+
+  const fileName = `nurse-cases-readable-${dateStr}.json`
+
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+
+  return fileName
+}
+
 // ── Export ───────────────────────────────────────────────────────────────────
 
 export function exportBackup(cases: SurgicalCase[]): string {
