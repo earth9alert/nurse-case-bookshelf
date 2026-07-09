@@ -3,6 +3,7 @@ import { sampleCases } from '../data/sampleCases'
 import type { SurgicalCase } from '../types/case'
 import { validateCase } from '../utils/caseValidator'
 import { loadCasesFromIDB, saveCasesToIDB } from './useIndexedDB'
+import { uploadCasesToSupabase, isSupabaseEnabled, getAnonymousUserId } from './useSupabase'
 
 const STORAGE_KEY = 'nurse-case-bookshelf-cases'
 const SAVE_DEBOUNCE_MS = 500
@@ -83,6 +84,20 @@ export function useCases() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
+  }, [cases])
+
+  // Sync to Supabase (less frequently - every 30 seconds)
+  useEffect(() => {
+    if (!isSupabaseEnabled() || cases.length === 0) return
+
+    const syncInterval = setInterval(() => {
+      const userId = getAnonymousUserId()
+      uploadCasesToSupabase(userId, cases).catch((err) => {
+        console.error('[useCases] Supabase sync error:', err)
+      })
+    }, 30000) // Sync every 30 seconds
+
+    return () => clearInterval(syncInterval)
   }, [cases])
 
   const resetToSample = useCallback(() => {
