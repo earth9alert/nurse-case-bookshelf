@@ -1,58 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { sampleCases } from '../data/sampleCases'
 import type { SurgicalCase } from '../types/case'
-import { validateCase } from '../utils/caseValidator'
-import { loadCasesFromIDB, saveCasesToIDB } from './useIndexedDB'
-import { uploadCasesToSupabase, isSupabaseEnabled, getAnonymousUserId } from './useSupabase'
-
-const STORAGE_KEY = 'nurse-case-bookshelf-cases'
-const SAVE_DEBOUNCE_MS = 500
+import { uploadCasesToSupabase, downloadCasesFromSupabase, isSupabaseEnabled, getAnonymousUserId } from './useSupabase'
 
 // ── Storage helpers ─────────────────────────────────────────────────────────
 
 function loadCases(): SurgicalCase[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed: unknown = JSON.parse(raw)
-      if (Array.isArray(parsed)) {
-        const valid = (parsed as unknown[])
-          .map(validateCase)
-          .filter((c): c is SurgicalCase => c !== null)
-        if (valid.length > 0) return valid
-      }
-    }
-  } catch {
-    // corrupted storage → fall through to defaults
-  }
+  // Load from sample - Supabase will sync on mount
   return sampleCases
-}
-
-function saveCases(cases: SurgicalCase[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
-    console.log(`[useCases] Saved ${cases.length} cases to localStorage`)
-  } catch (err) {
-    // QuotaExceededError or similar — warn without crashing
-    console.error('[useCases] Could not persist to localStorage:', err)
-    // Try to free up space by removing old auto-backups
-    try {
-      const keys = Object.keys(localStorage)
-      const backupKeys = keys.filter((k) => k.startsWith('backup-')).sort()
-      if (backupKeys.length > 1) {
-        localStorage.removeItem(backupKeys[0])
-        console.log('[useCases] Removed old backup, retrying save...')
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
-      }
-    } catch {
-      console.error('[useCases] Storage full and cleanup failed')
-    }
-  }
-
-  // Also save to IndexedDB for better persistence
-  saveCasesToIDB(cases).catch((err) => {
-    console.error('[useCases] IndexedDB save error:', err)
-  })
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────
@@ -60,45 +15,44 @@ function saveCases(cases: SurgicalCase[]): void {
 export function useCases() {
   const [cases, setCases] = useState<SurgicalCase[]>(loadCases)
   const [isInitialized, setIsInitialized] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Try to load from IndexedDB if localStorage is empty
+  // Load from Supabase on mount
   useEffect(() => {
-    if (!isInitialized && cases.length === sampleCases.length) {
-      // Only try IndexedDB if we're still on sample data
-      loadCasesFromIDB().then((idbCases) => {
-        if (idbCases.length > 0) {
-          console.log('[useCases] Restored cases from IndexedDB')
-          setCases(idbCases)
+    if (!isSupabaseEnabled()) {
+      console.log('[useCases] Supabase disabled - using sample data only')
+      setIsInitialized(true)
+      return
+    }
+
+    const userId = getAnonymousUserId()
+    downloadCasesFromSupabase(userId)
+      .then((supabaseCases) => {
+        if (supabaseCases.length > 0) {
+          console.log('[useCases] Loaded cases from Supabase')
+          setCases(supabaseCases)
         }
+      })
+      .catch((err) => {
+        console.error('[useCases] Failed to load from Supabase:', err)
+      })
+      .finally(() => {
         setIsInitialized(true)
       })
-    } else {
-      setIsInitialized(true)
-    }
   }, [])
 
+  // Upload to Supabase whenever cases change (debounced)
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => saveCases(cases), SAVE_DEBOUNCE_MS)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [cases])
+    if (!isInitialized || !isSupabaseEnabled() || cases.length === 0) return
 
-  // Sync to Supabase (less frequently - every 30 seconds)
-  useEffect(() => {
-    if (!isSupabaseEnabled() || cases.length === 0) return
-
-    const syncInterval = setInterval(() => {
+    const timer = setTimeout(() => {
       const userId = getAnonymousUserId()
       uploadCasesToSupabase(userId, cases).catch((err) => {
-        console.error('[useCases] Supabase sync error:', err)
+        console.error('[useCases] Upload to Supabase failed:', err)
       })
-    }, 30000) // Sync every 30 seconds
+    }, 1000) // Debounce 1 second
 
-    return () => clearInterval(syncInterval)
-  }, [cases])
+    return () => clearTimeout(timer)
+  }, [cases, isInitialized])
 
   const resetToSample = useCallback(() => {
     setCases(sampleCases)
