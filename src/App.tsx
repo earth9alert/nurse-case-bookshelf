@@ -9,6 +9,7 @@ import { CategoryEditor } from './components/CategoryEditor'
 import { SearchBar } from './components/SearchBar'
 import { SearchContent } from './components/SearchContent'
 import { RecentCasesPanel } from './components/RecentCasesPanel'
+import { StorageStatusBadge } from './components/StorageStatusBadge'
 import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -20,7 +21,7 @@ import './App.css'
 type View = 'lobby' | 'room' | 'read' | 'edit' | 'editCategory' | 'print'
 
 function App() {
-  const { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase } = useCases()
+  const { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase, isInitialized } = useCases()
   const { categories, upsertCategory, deleteCategory, reorderCategories } = useCategories()
   const { dark, toggle: toggleDark } = useDarkMode()
   const { recentCases, addRecent, clearRecent } = useRecentCases()
@@ -155,6 +156,7 @@ function App() {
             >
               {dark ? '☀️' : '🌙'}
             </button>
+            <StorageStatusBadge isInitialized={isInitialized} />
             <BackupRestore 
               cases={cases} 
               onImport={importCases}

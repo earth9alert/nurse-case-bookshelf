@@ -2865,3 +2865,43 @@
 [data-theme='dark'] .backup-recovery-modal__header { background: #3a2028; }
 [data-theme='dark'] .backup-recovery__item { background: #3a2028; border-color: #4a2a35; }
 [data-theme='dark'] .backup-recovery__info strong { color: #fce7f0; }
+
+
+/* ── Storage Status Badge ── */
+
+.storage-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.storage-status-badge:hover {
+  opacity: 0.9;
+}
+
+.storage-status-badge__icon {
+  font-size: 1rem;
+  display: inline-block;
+}
+
+.storage-status-badge__label {
+  letter-spacing: 0.3px;
+}
+
+@media (max-width: 600px) {
+  .storage-status-badge {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+
+  .storage-status-badge__icon {
+    font-size: 0.9rem;
+  }
+}

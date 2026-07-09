@@ -135,5 +135,5 @@ export function useCases() {
     })
   }, [])
 
-  return { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase }
+  return { cases, resetToSample, upsertCase, deleteCase, importCases, duplicateCase, isInitialized }
 }
