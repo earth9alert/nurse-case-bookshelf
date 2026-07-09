@@ -74,6 +74,15 @@ export function useCases() {
           console.log('[useCases] Loaded cases from Supabase')
           setCases(supabaseCases)
           saveCasesToCache(supabaseCases) // Update cache
+        } else {
+          // If Supabase is empty, upload current cases (sample or cached)
+          console.log('[useCases] Supabase empty - uploading initial cases')
+          const currentCases = loadCasesFromCache()
+          if (currentCases.length > 0) {
+            uploadCasesToSupabase(userId, currentCases)
+              .then(() => console.log('[useCases] Initial upload complete'))
+              .catch((err) => console.error('[useCases] Initial upload failed:', err))
+          }
         }
       })
       .catch((err) => {
