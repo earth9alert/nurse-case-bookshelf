@@ -25,10 +25,27 @@ function loadCasesFromCache(): SurgicalCase[] {
 
 function saveCasesToCache(cases: SurgicalCase[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
-    console.log(`[useCases] Cached ${cases.length} cases`)
+    const json = JSON.stringify(cases)
+    localStorage.setItem(STORAGE_KEY, json)
+    console.log(`[useCases] Cached ${cases.length} cases (${(json.length / 1024).toFixed(1)} KB)`)
   } catch (err) {
     console.error('[useCases] Failed to cache cases:', err)
+    
+    // Handle quota exceeded error
+    if (err instanceof Error && err.name === 'QuotaExceededError') {
+      console.warn('[useCases] localStorage quota exceeded!')
+      // Try to save minimal data (IDs only) as fallback
+      try {
+        const minimalData = cases.map(c => ({ id: c.id, title: c.title, categoryId: c.categoryId }))
+        localStorage.setItem(STORAGE_KEY + '_minimal', JSON.stringify(minimalData))
+        console.log('[useCases] Saved minimal backup')
+      } catch {
+        console.error('[useCases] Even minimal backup failed')
+      }
+      
+      // Notify user
+      alert('⚠️ พื้นที่เก็บข้อมูลเต็ม!\n\nแนะนำ:\n1. ลบเคสที่ไม่ใช้\n2. ลดจำนวนรูปภาพ\n3. ส่งออกข้อมูลเป็นไฟล์ backup')
+    }
   }
 }
 
@@ -74,7 +91,7 @@ export function useCases() {
     }
   }, [cases])
 
-  // Upload to Supabase whenever cases change (debounced)
+  // Upload to Supabase whenever cases change (debounced with rate limiting)
   useEffect(() => {
     if (!isInitialized || !isSupabaseEnabled() || cases.length === 0) return
 
@@ -83,7 +100,7 @@ export function useCases() {
       uploadCasesToSupabase(userId, cases).catch((err) => {
         console.error('[useCases] Upload to Supabase failed:', err)
       })
-    }, 1000) // Debounce 1 second
+    }, 2000) // Increased debounce to 2 seconds for rate limiting
 
     return () => clearTimeout(timer)
   }, [cases, isInitialized])

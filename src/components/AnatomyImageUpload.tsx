@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { AnatomyImage } from '../types/case'
-import { processImageFile } from '../utils/imageUpload'
+import { processImageFile, canAddMoreImages } from '../utils/imageUpload'
 
 interface AnatomyImageUploadProps {
   images: AnatomyImage[]
@@ -15,12 +15,26 @@ export function AnatomyImageUpload({ images, label = '📷 อัปโหลด
 
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) return
+    
+    // Check image limit
+    if (!canAddMoreImages(images.length)) {
+      setError('เพิ่มรูปได้สูงสุด 20 รูปต่อหัวข้อ')
+      return
+    }
+
     setError(null)
     setLoading(true)
 
     try {
       const next = [...images]
-      for (const file of Array.from(files)) {
+      const fileArray = Array.from(files)
+      
+      for (const file of fileArray) {
+        if (!canAddMoreImages(next.length)) {
+          setError(`เพิ่มได้แค่ ${fileArray.indexOf(file)} รูป — เกินขีดจำกัด 20 รูป`)
+          break
+        }
+        
         const dataUrl = await processImageFile(file)
         next.push({
           id: crypto.randomUUID(),
@@ -51,14 +65,14 @@ export function AnatomyImageUpload({ images, label = '📷 อัปโหลด
         <button
           type="button"
           className="btn-upload"
-          disabled={loading}
+          disabled={loading || !canAddMoreImages(images.length)}
           onClick={() => inputRef.current?.click()}
         >
           {loading ? 'กำลังอัปโหลด...' : label}
         </button>
         <span className="anatomy-upload__hint">
           JPG, PNG, WebP, GIF · บีบอัดอัตโนมัติ
-          {images.length > 0 && ` · ${images.length} รูป`}
+          {images.length > 0 && ` · ${images.length}/20 รูป`}
         </span>
         <input
           ref={inputRef}

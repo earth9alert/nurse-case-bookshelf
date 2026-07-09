@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { sanitizeHtml } from '../utils/sanitizer'
 
 interface RichTextEditorProps {
   value: string
@@ -30,12 +31,13 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
   const [floatPos, setFloatPos] = useState<FloatPos | null>(null)
   const [hasSelection, setHasSelection] = useState(false)
 
-  // Sync external value → DOM
+  // Sync external value → DOM (sanitized)
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
     if (skipNextSync.current) { skipNextSync.current = false; return }
-    if (el.innerHTML !== value) el.innerHTML = value
+    const sanitized = sanitizeHtml(value)
+    if (el.innerHTML !== sanitized) el.innerHTML = sanitized
   }, [value])
 
   const handleInput = useCallback(() => {
@@ -43,7 +45,9 @@ export function RichTextEditor({ value, onChange, placeholder, rows = 4, id }: R
     const el = editorRef.current
     if (!el) return
     skipNextSync.current = true
-    onChange(el.innerHTML)
+    // Sanitize before saving
+    const sanitized = sanitizeHtml(el.innerHTML)
+    onChange(sanitized)
   }, [onChange])
 
   // Floating toolbar position — above selected text

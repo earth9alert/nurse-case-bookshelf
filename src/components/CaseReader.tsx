@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { sanitizeForDisplay } from '../utils/sanitizer'
 import { AnatomyGallery } from './AnatomyGallery'
 import { SECTIONS, type SectionKey, type SurgicalCase } from '../types/case'
 
@@ -80,12 +81,12 @@ function TextBlock({ content }: { content: string }) {
   // Content may be plain text (legacy) or HTML (rich text)
   const isHtml = /<[a-z][\s\S]*>/i.test(content)
   if (isHtml) {
+    // Sanitize HTML before rendering
+    const sanitized = sanitizeForDisplay(content)
     return (
       <div
         className="text-block text-block--rich"
-        // Safe: content is only produced by our own RichTextEditor
-        // which only allows bold/underline/highlight via execCommand
-        dangerouslySetInnerHTML={{ __html: content }}
+        dangerouslySetInnerHTML={{ __html: sanitized }}
       />
     )
   }

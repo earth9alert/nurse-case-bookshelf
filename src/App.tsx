@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { Bookshelf } from './components/Bookshelf'
 import { CaseEditor } from './components/CaseEditor'
 import { CaseReader } from './components/CaseReader'
@@ -34,6 +36,18 @@ function App() {
   const [printCase, setPrintCase] = useState<SurgicalCase | null>(null)
   const [lobbyQuery, setLobbyQuery] = useState('')
   const [roomQuery, setRoomQuery] = useState('')
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    variant?: 'danger' | 'warning' | 'info'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -108,6 +122,7 @@ function App() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="app">
       <header className="app-header">
         <div className="app-header__brand">
@@ -177,7 +192,16 @@ function App() {
                   type="button"
                   className="btn-ghost"
                   onClick={() => {
-                    if (confirm('รีเซ็ตข้อมูลเป็นตัวอย่างเริ่มต้น?')) resetToSample()
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: 'รีเซ็ตข้อมูล',
+                      message: 'รีเซ็ตข้อมูลเป็นตัวอย่างเริ่มต้น? ข้อมูลเดิมจะถูกแทนที่',
+                      onConfirm: () => {
+                        resetToSample()
+                        setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+                      },
+                      variant: 'warning',
+                    })
                   }}
                 >
                   รีเซ็ตตัวอย่าง
@@ -287,7 +311,18 @@ function App() {
                         type="button"
                         className="danger"
                         aria-label={`ลบเคส ${c.title}`}
-                        onClick={() => { if (confirm(`ลบเคส "${c.title}"?`)) deleteCase(c.id) }}
+                        onClick={() => {
+                          setConfirmDialog({
+                            isOpen: true,
+                            title: 'ลบเคส',
+                            message: `ลบเคส "${c.title}"? การกระทำนี้ไม่สามารถยกเลิกได้`,
+                            onConfirm: () => {
+                              deleteCase(c.id)
+                              setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+                            },
+                            variant: 'danger',
+                          })
+                        }}
                       >
                         ลบ
                       </button>
@@ -371,7 +406,18 @@ function App() {
           }}
         />
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        variant={confirmDialog.variant}
+      />
     </div>
+    </ErrorBoundary>
   )
 }
 

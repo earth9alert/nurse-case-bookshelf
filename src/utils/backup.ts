@@ -79,13 +79,16 @@ export interface ImportError {
   message: string
 }
 
+const MAX_IMPORT_CASES = 1000
+const MAX_FILE_SIZE_MB = 20
+
 export async function importBackup(file: File): Promise<ImportResult | ImportError> {
   if (!file.name.endsWith('.json') && file.type !== 'application/json') {
     return { ok: false, message: 'ไฟล์ต้องเป็น .json เท่านั้น' }
   }
 
-  if (file.size > 50 * 1024 * 1024) {
-    return { ok: false, message: 'ไฟล์ใหญ่เกิน 50 MB' }
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+    return { ok: false, message: `ไฟล์ใหญ่เกิน ${MAX_FILE_SIZE_MB} MB` }
   }
 
   let raw: string
@@ -115,6 +118,11 @@ export async function importBackup(file: File): Promise<ImportResult | ImportErr
     rawCases = (parsed as BackupFile).cases
   } else {
     return { ok: false, message: 'รูปแบบไฟล์ไม่ถูกต้อง — ต้องเป็นไฟล์ backup จากแอปนี้' }
+  }
+
+  // Limit number of cases to prevent DoS
+  if (rawCases.length > MAX_IMPORT_CASES) {
+    return { ok: false, message: `ไฟล์มีเคสมากเกินไป (${rawCases.length} เคส) — อนุญาตสูงสุด ${MAX_IMPORT_CASES} เคส` }
   }
 
   const valid: SurgicalCase[] = []
