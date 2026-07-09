@@ -38,7 +38,7 @@ export async function uploadCasesToSupabase(userId: string, cases: SurgicalCase[
           data: c,
           updated_at: new Date().toISOString(),
         })),
-        { onConflict: 'id,user_id' }
+        { onConflict: 'id' }  // ← เปลี่ยนจาก 'id,user_id' เป็น 'id' อย่างเดียว
       )
 
     if (error) {
