@@ -38,22 +38,6 @@ export function BackupRestore({ cases, onImport, onNavigate }: BackupRestoreProp
     setTimeout(() => setExportState({ status: 'idle' }), 8000)
   }
 
-  const handleCopyToClipboard = async () => {
-    try {
-      const backupData = {
-        version: '1.0',
-        timestamp: new Date().toISOString(),
-        cases: cases,
-      }
-      const json = JSON.stringify(backupData, null, 2)
-      await navigator.clipboard.writeText(json)
-      setExportState({ status: 'done', fileName: 'copied-to-clipboard' })
-      setTimeout(() => setExportState({ status: 'idle' }), 3000)
-    } catch (err) {
-      console.error('Copy failed:', err)
-    }
-  }
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
