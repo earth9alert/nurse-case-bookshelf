@@ -3,11 +3,37 @@ import { sampleCases } from '../data/sampleCases'
 import type { SurgicalCase } from '../types/case'
 import { uploadCasesToSupabase, downloadCasesFromSupabase, isSupabaseEnabled, getAnonymousUserId } from './useSupabase'
 
+const STORAGE_KEY = 'nurse-case-bookshelf-cases'
+
 // ── Storage helpers ─────────────────────────────────────────────────────────
 
-function loadCases(): SurgicalCase[] {
-  // Load from sample - Supabase will sync on mount
+function loadCasesFromCache(): SurgicalCase[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        console.log(`[useCases] Loaded ${parsed.length} cases from cache`)
+        return parsed
+      }
+    }
+  } catch (err) {
+    console.error('[useCases] Failed to load from cache:', err)
+  }
   return sampleCases
+}
+
+function saveCasesToCache(cases: SurgicalCase[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cases))
+    console.log(`[useCases] Cached ${cases.length} cases`)
+  } catch (err) {
+    console.error('[useCases] Failed to cache cases:', err)
+  }
+}
+
+function loadCases(): SurgicalCase[] {
+  return loadCasesFromCache()
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────
@@ -16,10 +42,10 @@ export function useCases() {
   const [cases, setCases] = useState<SurgicalCase[]>(loadCases)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Load from Supabase on mount
+  // Load from Supabase on mount (if available)
   useEffect(() => {
     if (!isSupabaseEnabled()) {
-      console.log('[useCases] Supabase disabled - using sample data only')
+      console.log('[useCases] Supabase disabled - using cache only')
       setIsInitialized(true)
       return
     }
@@ -30,6 +56,7 @@ export function useCases() {
         if (supabaseCases.length > 0) {
           console.log('[useCases] Loaded cases from Supabase')
           setCases(supabaseCases)
+          saveCasesToCache(supabaseCases) // Update cache
         }
       })
       .catch((err) => {
@@ -39,6 +66,13 @@ export function useCases() {
         setIsInitialized(true)
       })
   }, [])
+
+  // Cache locally whenever cases change
+  useEffect(() => {
+    if (cases.length > 0) {
+      saveCasesToCache(cases)
+    }
+  }, [cases])
 
   // Upload to Supabase whenever cases change (debounced)
   useEffect(() => {
