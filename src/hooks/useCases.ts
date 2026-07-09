@@ -14,7 +14,17 @@ function loadCasesFromCache(): SurgicalCase[] {
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed) && parsed.length > 0) {
         console.log(`[useCases] Loaded ${parsed.length} cases from cache`)
-        return parsed
+        // Migrate old string IDs to UUIDs
+        const migrated = parsed.map((c: any) => {
+          // Check if ID is not a valid UUID (contains non-hex chars or wrong format)
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id)
+          if (!isUUID) {
+            console.log(`[useCases] Migrating old ID "${c.id}" to UUID`)
+            return { ...c, id: crypto.randomUUID() }
+          }
+          return c
+        })
+        return migrated
       }
     }
   } catch (err) {
