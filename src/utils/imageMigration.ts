@@ -4,7 +4,8 @@ import { uploadImageToStorage } from './imageStorage'
 /**
  * Check if an image is base64 encoded (old format)
  */
-function isBase64Image(imageUrl: string): boolean {
+function isBase64Image(imageUrl: string | undefined): boolean {
+  if (!imageUrl || typeof imageUrl !== 'string') return false
   return imageUrl.startsWith('data:image/')
 }
 
