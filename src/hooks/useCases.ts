@@ -166,8 +166,30 @@ export function useCases() {
   }, [])
 
   const deleteCase = useCallback((id: string) => {
+    // Find the case being deleted (to get images for cleanup)
+    const caseToDelete = cases.find(c => c.id === id)
+    
+    // Delete from local state
     setCases((prev) => prev.filter((c) => c.id !== id))
-  }, [])
+    
+    // Delete from Supabase if enabled
+    if (isSupabaseEnabled() && caseToDelete) {
+      const userId = getAnonymousUserId()
+      console.log(`[useCases] Deleting case "${caseToDelete.title}" from Supabase...`)
+      
+      // Get current cases from state and filter out the deleted one
+      setCases((prev) => {
+        const updated = prev.filter((c) => c.id !== id)
+        
+        // Upload updated list without the deleted case
+        uploadCasesToSupabase(userId, updated)
+          .then(() => console.log(`[useCases] ✓ Case deleted from Supabase`))
+          .catch((err) => console.error('[useCases] Failed to delete case from Supabase:', err))
+        
+        return updated
+      })
+    }
+  }, [cases, isSupabaseEnabled])
 
   const importCases = useCallback((incoming: SurgicalCase[], merge?: boolean) => {
     setCases((prev) => {
