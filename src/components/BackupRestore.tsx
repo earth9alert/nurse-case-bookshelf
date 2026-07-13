@@ -38,6 +38,23 @@ export function BackupRestore({ cases, onImport, onNavigate }: BackupRestoreProp
     setTimeout(() => setExportState({ status: 'idle' }), 8000)
   }
 
+  const handleClearLocalStorage = async () => {
+    if (!window.confirm('⚠️ ลบข้อมูลทั้งหมดใน localStorage (โทรศัพท์)?\n\nข้อมูลใน Supabase จะเหลือ\n\nแน่ใจหรือ?')) {
+      return
+    }
+
+    try {
+      localStorage.clear()
+      sessionStorage.clear()
+      console.log('[BackupRestore] ✓ Cleared all local storage')
+      alert('✓ ล้างข้อมูลสำเร็จ\n\nรีเฟรชแอปเพื่อโหลดใหม่จาก Supabase')
+      window.location.reload()
+    } catch (err) {
+      console.error('[BackupRestore] Clear failed:', err)
+      alert('❌ ล้างข้อมูลล้มเหลว')
+    }
+  }
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -116,6 +133,15 @@ export function BackupRestore({ cases, onImport, onNavigate }: BackupRestoreProp
           hidden
           onChange={handleFileChange}
         />
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={handleClearLocalStorage}
+          title="ลบข้อมูลทั้งหมดใน localStorage และโหลดใหม่จาก Supabase"
+          aria-label="ล้างแคชข้อมูล"
+        >
+          🧹 ล้างแคช
+        </button>
       </div>
 
       {/* Export success toast */}
