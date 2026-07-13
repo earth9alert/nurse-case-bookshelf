@@ -113,10 +113,15 @@ export function useCases() {
 
   // Upload to Supabase whenever cases change (debounced with rate limiting)
   useEffect(() => {
-    if (!isInitialized || !isSupabaseEnabled() || cases.length === 0) return
+    if (!isInitialized || !isSupabaseEnabled() || cases.length === 0) {
+      console.log(`[useCases] Upload skipped - initialized:${isInitialized} enabled:${isSupabaseEnabled()} cases:${cases.length}`)
+      return
+    }
 
+    console.log(`[useCases] Scheduling upload in 2s (${cases.length} cases)`)
     const timer = setTimeout(() => {
       const userId = getAnonymousUserId()
+      console.log(`[useCases] Uploading ${cases.length} cases...`)
       uploadCasesToSupabase(userId, cases).catch((err) => {
         console.error('[useCases] Upload to Supabase failed:', err)
       })
