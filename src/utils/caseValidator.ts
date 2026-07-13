@@ -3,9 +3,18 @@ import { UNCATEGORIZED_ID } from '../types/case'
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
 const DATA_IMAGE_RE = /^data:image\/(jpeg|png|webp|gif);base64,/
+const STORAGE_URL_RE = /^https:\/\/.*\.supabase\.co\/storage\//
 
 export function isValidDataUrl(value: unknown): value is string {
   return typeof value === 'string' && DATA_IMAGE_RE.test(value)
+}
+
+export function isValidImageUrl(value: unknown): value is string {
+  return typeof value === 'string' && STORAGE_URL_RE.test(value)
+}
+
+export function isValidImageSource(value: unknown): value is string {
+  return isValidDataUrl(value) || isValidImageUrl(value)
 }
 
 export function isValidColor(value: unknown): value is string {
@@ -21,8 +30,18 @@ function validateAnatomyImage(img: unknown): AnatomyImage | null {
   const o = img as Record<string, unknown>
   if (typeof o.id !== 'string' || !o.id) return null
   if (typeof o.caption !== 'string') return null
-  if (!isValidDataUrl(o.dataUrl)) return null
-  return { id: o.id, caption: o.caption, dataUrl: o.dataUrl }
+  
+  // Accept either new imageUrl or old dataUrl for backward compatibility
+  let imageUrl: string | null = null
+  if (typeof o.imageUrl === 'string' && isValidImageSource(o.imageUrl)) {
+    imageUrl = o.imageUrl
+  } else if (typeof o.dataUrl === 'string' && isValidImageSource(o.dataUrl)) {
+    // Migrate old field name to new one
+    imageUrl = o.dataUrl
+  }
+  
+  if (!imageUrl) return null
+  return { id: o.id, caption: o.caption, imageUrl }
 }
 
 function validateImageArray(raw: unknown): AnatomyImage[] {

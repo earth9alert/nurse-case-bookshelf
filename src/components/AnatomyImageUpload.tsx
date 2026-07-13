@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { AnatomyImage } from '../types/case'
-import { processImageFile, canAddMoreImages } from '../utils/imageUpload'
+import { processImageFile, canAddMoreImages, deleteImageFile } from '../utils/imageUpload'
 
 interface AnatomyImageUploadProps {
   images: AnatomyImage[]
@@ -39,7 +39,7 @@ export function AnatomyImageUpload({ images, label = '📷 อัปโหลด
         next.push({
           id: crypto.randomUUID(),
           caption: file.name.replace(/\.[^.]+$/, ''),
-          dataUrl,
+          imageUrl: dataUrl,
         })
       }
       onChange(next)
@@ -56,6 +56,11 @@ export function AnatomyImageUpload({ images, label = '📷 อัปโหลด
   }
 
   const removeImage = (id: string) => {
+    const imgToRemove = images.find(img => img.id === id)
+    if (imgToRemove) {
+      // Delete from Supabase Storage
+      deleteImageFile(imgToRemove.imageUrl)
+    }
     onChange(images.filter((img) => img.id !== id))
   }
 
@@ -90,7 +95,7 @@ export function AnatomyImageUpload({ images, label = '📷 อัปโหลด
         <ul className="anatomy-upload__list">
           {images.map((img) => (
             <li key={img.id} className="anatomy-upload__item">
-              <img src={img.dataUrl} alt={img.caption || 'รูป'} />
+              <img src={img.imageUrl} alt={img.caption || 'รูป'} />
               <input
                 type="text"
                 value={img.caption}

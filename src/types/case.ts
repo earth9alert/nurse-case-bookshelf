@@ -7,7 +7,7 @@ export interface Equipment {
 export interface AnatomyImage {
   id: string
   caption: string
-  dataUrl: string
+  imageUrl: string  // URL to image in Supabase Storage (was base64 dataUrl)
 }
 
 export interface Category {

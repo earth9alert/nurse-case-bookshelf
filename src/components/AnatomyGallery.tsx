@@ -35,7 +35,7 @@ export function AnatomyGallery({ images, title }: AnatomyGalleryProps) {
               onClick={() => setLightbox(img)}
               aria-label={img.caption ? `ดูรูป: ${img.caption}` : 'ดูรูป anatomy ขนาดใหญ่'}
             >
-              <img src={img.dataUrl} alt={img.caption || 'รูป anatomy'} loading="lazy" />
+              <img src={img.imageUrl} alt={img.caption || 'รูป anatomy'} loading="lazy" />
               {img.caption && <span>{img.caption}</span>}
             </button>
           ))}
@@ -59,7 +59,7 @@ export function AnatomyGallery({ images, title }: AnatomyGalleryProps) {
             ✕
           </button>
           <figure onClick={(e) => e.stopPropagation()}>
-            <img src={lightbox.dataUrl} alt={lightbox.caption || 'รูป anatomy'} />
+            <img src={lightbox.imageUrl} alt={lightbox.caption || 'รูป anatomy'} />
             {lightbox.caption && (
               <figcaption id="lightbox-caption">{lightbox.caption}</figcaption>
             )}

@@ -136,7 +136,7 @@ export function CasePrintView({ surgicalCase, onClose }: CasePrintViewProps) {
                 <div className="print-images">
                   {imgs.map((img) => (
                     <figure key={img.id} className="print-image">
-                      <img src={img.dataUrl} alt={img.caption || 'รูปประกอบ'} />
+                      <img src={img.imageUrl} alt={img.caption || 'รูปประกอบ'} />
                       {img.caption && <figcaption>{img.caption}</figcaption>}
                     </figure>
                   ))}
