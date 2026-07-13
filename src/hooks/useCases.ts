@@ -60,7 +60,8 @@ function saveCasesToCache(cases: SurgicalCase[]): void {
 }
 
 function loadCases(): SurgicalCase[] {
-  return loadCasesFromCache()
+  // Always start empty - data comes from Supabase only
+  return []
 }
 
 // ── Hook ────────────────────────────────────────────────────────────────────
@@ -125,7 +126,9 @@ export function useCases() {
   }, [cases, isInitialized])
 
   const resetToSample = useCallback(() => {
-    setCases(sampleCases)
+    // Reset to empty since we no longer have sample cases
+    console.log('[useCases] Reset to empty (no sample cases)')
+    setCases([])
   }, [])
 
   const upsertCase = useCallback((surgicalCase: SurgicalCase) => {
