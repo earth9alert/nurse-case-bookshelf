@@ -32,11 +32,15 @@ function validateAnatomyImage(img: unknown): AnatomyImage | null {
   if (typeof o.caption !== 'string') return null
   
   // Accept either new imageUrl or old dataUrl for backward compatibility
-  let imageUrl: string | null = null
-  if (typeof o.imageUrl === 'string' && isValidImageSource(o.imageUrl)) {
+  let imageUrl: string | undefined
+  
+  // Try new field first
+  if (typeof o.imageUrl === 'string' && o.imageUrl) {
     imageUrl = o.imageUrl
-  } else if (typeof o.dataUrl === 'string' && isValidImageSource(o.dataUrl)) {
-    // Migrate old field name to new one
+  }
+  
+  // Fall back to old field name
+  if (!imageUrl && typeof o.dataUrl === 'string' && o.dataUrl) {
     imageUrl = o.dataUrl
   }
   

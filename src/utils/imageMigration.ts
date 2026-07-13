@@ -10,6 +10,14 @@ function isBase64Image(imageUrl: string | undefined): boolean {
 }
 
 /**
+ * Check if an image is a Supabase Storage URL (already migrated)
+ */
+function isStorageUrl(imageUrl: string | undefined): boolean {
+  if (!imageUrl || typeof imageUrl !== 'string') return false
+  return imageUrl.includes('.supabase.co/storage/')
+}
+
+/**
  * Convert base64 data URL to Blob
  */
 function base64ToBlob(dataUrl: string): Blob | null {
@@ -91,9 +99,21 @@ export async function migrateImagesInCase(
 
     const migratedSection: AnatomyImage[] = []
     for (const img of images) {
+      // Skip if already a Storage URL
+      if (isStorageUrl(img.imageUrl)) {
+        migratedSection.push(img)
+        continue
+      }
+
       const migrated = await migrateImage(img, userId)
       if (migrated) {
         migratedSection.push(migrated)
+      } else {
+        // If migration fails, keep the original if it's not empty
+        if (img.imageUrl) {
+          console.warn(`[imageMigration] Keeping original URL for "${img.caption}" (migration failed)`)
+          migratedSection.push(img)
+        }
       }
     }
     migratedImages[sectionKey] = migratedSection
