@@ -15,7 +15,7 @@ export async function uploadImageToStorage(file: File, userId: string): Promise<
     const random = Math.random().toString(36).substring(7)
     const filename = `${userId}/${timestamp}-${random}-${file.name}`
 
-    console.log(`[imageStorage] Uploading ${file.name} to bucket "${BUCKET_NAME}"...`)
+    console.log(`[imageStorage] Uploading ${file.name} (${(file.size / 1024).toFixed(1)}KB) to bucket "${BUCKET_NAME}"...`)
 
     // Upload to storage
     const { data, error } = await client.storage
@@ -37,6 +37,15 @@ export async function uploadImageToStorage(file: File, userId: string): Promise<
         )
       }
       
+      // Check if permission denied
+      if (error.message.includes('permission') || error.message.includes('403')) {
+        throw new Error(
+          `❌ Permission denied\n\n` +
+          `Policies ไม่ถูกต้องหรือยังไม่ได้ตั้ง\n` +
+          `ให้ไปเพิ่ม RLS policies ใน Storage > Policies`
+        )
+      }
+      
       throw new Error(`Upload failed: ${error.message}`)
     }
 
@@ -45,7 +54,7 @@ export async function uploadImageToStorage(file: File, userId: string): Promise<
       .from(BUCKET_NAME)
       .getPublicUrl(data.path)
 
-    console.log(`[imageStorage] ✓ Uploaded ${file.name} → ${publicUrl.publicUrl}`)
+    console.log(`[imageStorage] ✓ Uploaded ${file.name} (${(file.size / 1024).toFixed(1)}KB) → ${publicUrl.publicUrl}`)
     return publicUrl.publicUrl
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Image upload failed'
