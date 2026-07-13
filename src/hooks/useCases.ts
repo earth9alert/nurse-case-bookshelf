@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { sampleCases } from '../data/sampleCases'
 import type { SurgicalCase } from '../types/case'
 import { uploadCasesToSupabase, downloadCasesFromSupabase, isSupabaseEnabled, getAnonymousUserId } from './useSupabase'
+import { migrateCasesToStorageUrls } from '../utils/imageMigration'
 
 const STORAGE_KEY = 'nurse-case-bookshelf-cases'
 
@@ -80,11 +81,27 @@ export function useCases() {
 
     const userId = getAnonymousUserId()
     downloadCasesFromSupabase(userId)
-      .then((supabaseCases) => {
+      .then(async (supabaseCases) => {
         if (supabaseCases.length > 0) {
           console.log('[useCases] Loaded cases from Supabase')
-          setCases(supabaseCases)
-          saveCasesToCache(supabaseCases) // Update cache
+          
+          // Migrate base64 images to Supabase Storage
+          const migratedCases = await migrateCasesToStorageUrls(supabaseCases, userId)
+          
+          // If any images were migrated, upload the updated cases back
+          const hasChanges = migratedCases.some((c, i) => 
+            JSON.stringify(c) !== JSON.stringify(supabaseCases[i])
+          )
+          
+          setCases(migratedCases)
+          saveCasesToCache(migratedCases) // Update cache
+          
+          if (hasChanges) {
+            console.log('[useCases] Uploading migrated cases back to Supabase...')
+            uploadCasesToSupabase(userId, migratedCases)
+              .then(() => console.log('[useCases] Migration upload complete'))
+              .catch((err) => console.error('[useCases] Migration upload failed:', err))
+          }
         } else {
           // If Supabase is empty, upload current cases (sample or cached)
           console.log('[useCases] Supabase empty - uploading initial cases')
