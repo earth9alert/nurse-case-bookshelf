@@ -87,15 +87,10 @@ export function isSupabaseEnabled(): boolean {
   return !!getSupabase()
 }
 
-// Get anonymous user ID (random UUID stored in localStorage)
+// Get shared user ID (same for all users so all devices see the same data)
 export function getAnonymousUserId(): string {
-  const ANON_USER_KEY = 'nurse-case-bookshelf-anon-user-id'
-  let userId = localStorage.getItem(ANON_USER_KEY)
-
-  if (!userId) {
-    userId = crypto.randomUUID()
-    localStorage.setItem(ANON_USER_KEY, userId)
-  }
-
-  return userId
+  // Use a fixed UUID so all devices/users share the same data
+  // UUID: 00000000-0000-0000-0000-000000000000 is the "nil UUID" - universally recognized as shared
+  const SHARED_USER_ID = '00000000-0000-0000-0000-000000000000'
+  return SHARED_USER_ID
 }
