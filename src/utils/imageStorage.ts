@@ -3,6 +3,43 @@ import { getSupabase } from '../hooks/useSupabase'
 const BUCKET_NAME = 'case-images'
 
 /**
+ * Check if Storage bucket exists and is accessible
+ */
+export async function checkBucketStatus(): Promise<{ exists: boolean; accessible: boolean; error?: string }> {
+  const client = getSupabase()
+  if (!client) return { exists: false, accessible: false, error: 'Supabase not initialized' }
+
+  try {
+    // Try to list files in bucket (minimal operation to check access)
+    const { error } = await client.storage
+      .from(BUCKET_NAME)
+      .list('', { limit: 1 })
+
+    if (error?.message.includes('not found') || error?.message.includes('404')) {
+      console.warn(`[imageStorage] Bucket "${BUCKET_NAME}" does not exist`)
+      return { exists: false, accessible: false, error: 'Bucket not found' }
+    }
+
+    if (error?.message.includes('permission') || error?.message.includes('403')) {
+      console.warn(`[imageStorage] Bucket "${BUCKET_NAME}" exists but not accessible (permission denied)`)
+      return { exists: true, accessible: false, error: 'Permission denied - check RLS policies' }
+    }
+
+    if (error) {
+      console.warn(`[imageStorage] Error checking bucket:`, error)
+      return { exists: false, accessible: false, error: error.message }
+    }
+
+    console.log(`[imageStorage] ✓ Bucket "${BUCKET_NAME}" exists and is accessible`)
+    return { exists: true, accessible: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[imageStorage] Check failed:', message)
+    return { exists: false, accessible: false, error: message }
+  }
+}
+
+/**
  * Upload image to Supabase Storage and return public URL
  */
 export async function uploadImageToStorage(file: File, userId: string): Promise<string> {

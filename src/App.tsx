@@ -16,6 +16,7 @@ import { useCases } from './hooks/useCases'
 import { useCategories } from './hooks/useCategories'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useRecentCases } from './hooks/useRecentCases'
+import { checkBucketStatus } from './utils/imageStorage'
 import type { Category, SurgicalCase } from './types/case'
 import { UNCATEGORIZED_ID } from './types/case'
 import './App.css'
@@ -48,6 +49,17 @@ function App() {
     message: '',
     onConfirm: () => {},
   })
+
+  // Check Storage bucket status on app load
+  useEffect(() => {
+    checkBucketStatus()
+      .then(status => {
+        if (!status.accessible) {
+          console.warn('[App] Storage bucket not accessible:', status.error)
+        }
+      })
+      .catch(err => console.error('[App] Failed to check bucket status:', err))
+  }, [])
 
   // Keyboard shortcuts
   useEffect(() => {

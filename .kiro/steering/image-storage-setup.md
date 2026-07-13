@@ -21,47 +21,55 @@ Configure Supabase Storage bucket `case-images` to store medical case images.
 
 ### 2. Configure Access Policies (RLS)
 
-**Method A: Via Dashboard (Easy)**
+**Method A: Via SQL (Most Reliable)**
+
+1. Go to **[Supabase SQL Editor](https://app.supabase.com/project/_/sql/new)**
+2. Copy policies from `.kiro/steering/setup-storage-policies.sql`
+3. Paste into SQL editor and click **Run**
+4. Verify success in console output
+
+**Method B: Via Dashboard (GUI)**
 
 1. Select `case-images` bucket
 2. Click **Policies**
-3. Click **New Policy**
-4. Select template: **Enable public access with select and insert**
-5. Configure:
-   - **Target roles:** `anon` (anonymous users)
-   - **Operations:** ✅ SELECT ✅ INSERT ✅ UPDATE ✅ DELETE
-6. Click **Create policy**
+3. Click **New Policy** and create each:
 
-**Method B: SQL (Advanced)**
+```
+Policy 1: SELECT (Read)
+- Operation: SELECT
+- Target: anon
+- USING: bucket_id = 'case-images'
 
-```sql
--- Allow anonymous users to upload
-CREATE POLICY "Enable insert for anon users"
-ON storage.objects FOR INSERT
-TO anon
-WITH CHECK (bucket_id = 'case-images');
+Policy 2: INSERT (Upload)
+- Operation: INSERT  
+- Target: anon
+- WITH CHECK: bucket_id = 'case-images'
 
--- Allow anonymous users to read public files
-CREATE POLICY "Enable public read"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'case-images');
+Policy 3: UPDATE
+- Operation: UPDATE
+- Target: anon
+- USING & WITH CHECK: bucket_id = 'case-images'
 
--- Allow anonymous users to delete their own files
-CREATE POLICY "Enable delete for anon users"
-ON storage.objects FOR DELETE
-TO anon
-USING (bucket_id = 'case-images');
+Policy 4: DELETE
+- Operation: DELETE
+- Target: anon
+- USING: bucket_id = 'case-images'
 ```
 
 ### 3. Verify Setup
 
 - Bucket exists and is **Public** ✅
-- Policies allow **SELECT** and **INSERT** for `anon` role
+- Policies are created and enabled:
+  - ✅ SELECT (for anon to download)
+  - ✅ INSERT (for anon to upload)
+  - ✅ UPDATE (for anon to modify)
+  - ✅ DELETE (for anon to remove)
 - Project URL in `.env.local`:
   ```
   VITE_SUPABASE_URL=https://your-project.supabase.co
   VITE_SUPABASE_ANON_KEY=your-key
   ```
+- **Check policies**: Storage > case-images > Policies (should show 4 policies)
 
 ### 4. Test Upload
 
