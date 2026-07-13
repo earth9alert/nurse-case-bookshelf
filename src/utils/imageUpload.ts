@@ -3,8 +3,8 @@ import { getAnonymousUserId } from '../hooks/useSupabase'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_INPUT_MB = 10
-const MAX_WIDTH = 1400
-const JPEG_QUALITY = 0.82
+const MAX_WIDTH = 800  // Reduced from 1400 — good enough for viewing, smaller file size
+const JPEG_QUALITY = 0.65  // Reduced from 0.82 — more aggressive compression
 const MAX_IMAGES_PER_SECTION = 20
 
 // Magic bytes for file type validation
