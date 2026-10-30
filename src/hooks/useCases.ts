@@ -13,7 +13,9 @@ function loadCasesFromCache(): SurgicalCase[] {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
+        if (parsed.length === 0) return []
+
         console.log(`[useCases] Loaded ${parsed.length} cases from cache`)
         // Migrate old string IDs to UUIDs
         const migrated = parsed.map((c: any) => {
@@ -75,6 +77,7 @@ export function useCases() {
   useEffect(() => {
     if (!isSupabaseEnabled()) {
       console.log('[useCases] Supabase disabled - using cache only')
+      setCases(loadCasesFromCache())
       setIsInitialized(true)
       return
     }
@@ -106,6 +109,7 @@ export function useCases() {
           // If Supabase is empty, upload current cases (sample or cached)
           console.log('[useCases] Supabase empty - uploading initial cases')
           const currentCases = loadCasesFromCache()
+          setCases(currentCases)
           if (currentCases.length > 0) {
             uploadCasesToSupabase(userId, currentCases)
               .then(() => console.log('[useCases] Initial upload complete'))
@@ -115,6 +119,7 @@ export function useCases() {
       })
       .catch((err) => {
         console.error('[useCases] Failed to load from Supabase:', err)
+        setCases(loadCasesFromCache())
       })
       .finally(() => {
         setIsInitialized(true)
@@ -123,10 +128,10 @@ export function useCases() {
 
   // Cache locally whenever cases change
   useEffect(() => {
-    if (cases.length > 0) {
+    if (cases.length > 0 || isInitialized) {
       saveCasesToCache(cases)
     }
-  }, [cases])
+  }, [cases, isInitialized])
 
   // Upload to Supabase whenever cases change (debounced with rate limiting)
   useEffect(() => {

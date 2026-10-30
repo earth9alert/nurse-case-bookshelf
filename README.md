@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# Nurse Case Bookshelf
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+เว็บแอปภาษาไทยสำหรับจัดเก็บและเปิดดูคู่มือเตรียมเคสพยาบาลห้องผ่าตัด สร้างด้วย React, TypeScript และ Vite
 
-Currently, two official plugins are available:
+## ความสามารถ
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- จัดเคสตามหมวดหมู่ เพิ่ม แก้ไข ลบ และทำสำเนาเคส
+- ค้นหาเคส และดูเคสที่เปิดล่าสุด
+- บันทึกข้อมูลในเบราว์เซอร์ และเลือกซิงก์ข้อมูลข้ามอุปกรณ์ผ่าน Supabase
+- สำรองและนำเข้าข้อมูล JSON รวมถึงพิมพ์หรือบันทึกเคสเป็น PDF
+- รองรับโหมดมืดและติดตั้งเป็น Progressive Web App (PWA)
 
-## React Compiler
+## เริ่มต้นใช้งาน
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+ต้องติดตั้ง Node.js ก่อน จากนั้นรันคำสั่ง:
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+เปิด URL ที่ Vite แสดงใน terminal เพื่อใช้งานแอป
+
+## การจัดเก็บข้อมูล
+
+หากไม่ตั้งค่า Supabase แอปจะใช้ข้อมูลใน `localStorage` ของเบราว์เซอร์ ข้อมูลที่เคยบันทึกไว้จะถูกนำกลับมาใช้เมื่อเปิดแอปอีกครั้ง และการลบเคสทั้งหมดจะถูกเก็บไว้ด้วย
+
+หากต้องการซิงก์ข้อมูลผ่าน Supabase:
+
+1. คัดลอก `.env.example` เป็น `.env.local`
+2. กำหนด `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` จาก Supabase project
+3. สร้างตาราง `cases` ให้มีคอลัมน์ `id` (UUID, primary key), `user_id` (UUID), `data` (JSONB) และ `updated_at` (timestamp) พร้อมกำหนดสิทธิ์/RLS ให้แอปอ่านและเขียนข้อมูลได้
+4. หากใช้อัปโหลดรูป ให้สร้าง Storage bucket ชื่อ `case-images` และกำหนดสิทธิ์ตามการใช้งาน
+5. เริ่มหรือ build แอปใหม่หลังเปลี่ยน environment variables
+
+ปัจจุบันแอปใช้ user ID แบบคงที่เพื่อให้ข้อมูล Supabase ชุดเดียวกันมองเห็นได้จากทุกอุปกรณ์ จึงไม่มีการแยกข้อมูลตามผู้ใช้ **อย่าใส่ข้อมูลผู้ป่วยหรือข้อมูลส่วนบุคคล/ข้อมูลสุขภาพที่ระบุตัวบุคคลได้** และควรตั้งค่า RLS/Storage policy ให้เหมาะกับการใช้งานก่อนเผยแพร่
+
+## คำสั่งสำหรับตรวจสอบ
+
+```bash
+npm run build
+npm run lint
+```
+
+ไฟล์ build สำหรับ production จะถูกสร้างใน `dist/`

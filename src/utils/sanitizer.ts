@@ -2,7 +2,7 @@ import DOMPurify from 'dompurify'
 
 // Configure DOMPurify for rich text editor
 const purifyConfig = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'u', 'span', 'mark'],
+  ALLOWED_TAGS: ['p', 'div', 'br', 'strong', 'b', 'u', 'span', 'mark'],
   ALLOWED_ATTR: ['style'],
   ALLOWED_STYLES: {
     '*': {
@@ -30,6 +30,6 @@ export function sanitizeForDisplay(dirty: string): string {
   if (!dirty || typeof dirty !== 'string') return ''
   return DOMPurify.sanitize(dirty, {
     ...purifyConfig,
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'u', 'span', 'mark', 'ul', 'ol', 'li'],
+    ALLOWED_TAGS: ['p', 'div', 'br', 'strong', 'b', 'u', 'span', 'mark', 'ul', 'ol', 'li'],
   }) as string
 }
