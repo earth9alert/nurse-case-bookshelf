@@ -115,15 +115,27 @@ export function CasePrintView({ surgicalCase, onClose }: CasePrintViewProps) {
                 <div className="print-equipment">
                   <div className="print-equipment__col">
                     <h3>📦 ของใน Store</h3>
-                    <ul>{surgicalCase.equipment.store.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                    <ul>{surgicalCase.equipment.store.map((item, i) => (
+                      <li key={i} className={item.trim() ? undefined : 'equipment-list__blank'}>
+                        {item.trim() ? item : '\u00a0'}
+                      </li>
+                    ))}</ul>
                   </div>
                   <div className="print-equipment__col">
                     <h3>🏥 ของในห้องเวช</h3>
-                    <ul>{surgicalCase.equipment.room.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                    <ul>{surgicalCase.equipment.room.map((item, i) => (
+                      <li key={i} className={item.trim() ? undefined : 'equipment-list__blank'}>
+                        {item.trim() ? item : '\u00a0'}
+                      </li>
+                    ))}</ul>
                   </div>
                   <div className="print-equipment__col">
                     <h3>🧺 ของในตะกร้า</h3>
-                    <ul>{surgicalCase.equipment.basket.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                    <ul>{surgicalCase.equipment.basket.map((item, i) => (
+                      <li key={i} className={item.trim() ? undefined : 'equipment-list__blank'}>
+                        {item.trim() ? item : '\u00a0'}
+                      </li>
+                    ))}</ul>
                   </div>
                 </div>
               )}

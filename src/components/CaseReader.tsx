@@ -104,7 +104,11 @@ function EquipmentList({ title, items, icon }: { title: string; items: string[];
     <div className="equipment-list">
       <h3><span aria-hidden="true">{icon}</span> {title}</h3>
       <ul>
-        {items.map((item, i) => <li key={i}>{item}</li>)}
+        {items.map((item, i) => (
+          <li key={i} className={item.trim() ? undefined : 'equipment-list__blank'}>
+            {item.trim() ? item : '\u00a0'}
+          </li>
+        ))}
       </ul>
     </div>
   )

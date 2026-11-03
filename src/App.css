@@ -2086,6 +2086,7 @@
 /* Reader: rich HTML rendering */
 .text-block--rich {
   line-height: 1.75;
+  white-space: pre-wrap;
 }
 
 .text-block--rich p {
@@ -2392,9 +2393,12 @@
   border-bottom: 1.5px solid #f7dde5;
 }
 
-.print-plain p { margin: 0 0 0.35rem; font-size: 0.92rem; line-height: 1.65; }
-.print-rich { font-size: 0.92rem; line-height: 1.65; }
+.print-plain p { margin: 0 0 0.35rem; font-size: 0.92rem; line-height: 1.65; white-space: pre-wrap; }
+.print-rich { font-size: 0.92rem; line-height: 1.65; white-space: pre-wrap; }
 .print-rich p { margin: 0 0 0.35rem; }
+.equipment-list li,
+.print-equipment li { white-space: pre-wrap; }
+.equipment-list__blank { list-style: none; }
 
 .print-equipment {
   display: grid;

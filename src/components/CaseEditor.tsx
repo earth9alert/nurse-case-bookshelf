@@ -36,7 +36,7 @@ const MAX_LONG_TEXT = 5000
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
 
 function linesToArray(text: string) {
-  return text.split('\n').map((l) => l.trim()).filter(Boolean)
+  return text === '' ? [] : text.split('\n')
 }
 
 function arrayToLines(arr: string[]) {
