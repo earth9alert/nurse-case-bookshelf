@@ -3,9 +3,39 @@ import { sanitizeForDisplay } from '../utils/sanitizer'
 import { AnatomyGallery } from './AnatomyGallery'
 import { SECTIONS, type SectionKey, type SurgicalCase } from '../types/case'
 
+const READING_SETTINGS_KEY = 'nurse-bookshelf-reading-settings'
+const DEFAULT_READING_SETTINGS = { fontSize: 18, lineHeight: 1.8 }
+const READING_FONT_SIZES = [16, 18, 20, 22, 24, 26, 28]
+
+type ReadingSettings = typeof DEFAULT_READING_SETTINGS
+
 interface CaseReaderProps {
   surgicalCase: SurgicalCase
   onClose: () => void
+}
+
+function getInitialReadingSettings(): ReadingSettings {
+  try {
+    const stored = localStorage.getItem(READING_SETTINGS_KEY)
+    if (stored) {
+      const parsed: unknown = JSON.parse(stored)
+      if (
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        'fontSize' in parsed &&
+        typeof parsed.fontSize === 'number' &&
+        READING_FONT_SIZES.includes(parsed.fontSize) &&
+        'lineHeight' in parsed &&
+        typeof parsed.lineHeight === 'number' &&
+        [1.8, 2].includes(parsed.lineHeight)
+      ) {
+        return { fontSize: parsed.fontSize, lineHeight: parsed.lineHeight }
+      }
+    }
+  } catch (error) {
+    console.warn('[CaseReader] Could not load reading preferences:', error)
+  }
+  return DEFAULT_READING_SETTINGS
 }
 
 function formatUpdatedAt(iso: string): string {
@@ -90,6 +120,28 @@ function TextBlock({ content }: { content: string }) {
       />
     )
   }
+  const bulletMarkers = content.match(/\*\s+/g)?.length ?? 0
+  const bulletItems = content.split(/\*\s+/).map((item) => item.trim()).filter(Boolean)
+  if (bulletMarkers >= 2 && bulletItems.length > 1) {
+    return (
+      <ul className="text-block__list">
+        {bulletItems.map((item, i) => {
+          const separatorIndex = item.indexOf('=')
+          return (
+            <li key={i}>
+              {separatorIndex > 0 ? (
+                <>
+                  <strong>{item.slice(0, separatorIndex).trim()}</strong>
+                  {' = '}
+                  {item.slice(separatorIndex + 1).trim()}
+                </>
+              ) : item}
+            </li>
+          )
+        })}
+      </ul>
+    )
+  }
   return (
     <div className="text-block">
       {content.split('\n').map((line, i) => (
@@ -117,6 +169,15 @@ function EquipmentList({ title, items, icon }: { title: string; items: string[];
 export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
   const [activeSection, setActiveSection] = useState<SectionKey>('dx')
   const [readSections, setReadSections] = useState<Set<SectionKey>>(new Set())
+  const [readingSettings, setReadingSettings] = useState<ReadingSettings>(getInitialReadingSettings)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(READING_SETTINGS_KEY, JSON.stringify(readingSettings))
+    } catch (error) {
+      console.warn('[CaseReader] Could not save reading preferences:', error)
+    }
+  }, [readingSettings])
 
   const markRead = useCallback((key: SectionKey) => {
     setReadSections((prev) => new Set(prev).add(key))
@@ -216,8 +277,66 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
         </nav>
 
         <main className="case-reader__content">
+          <div className="reading-controls" role="group" aria-label="ปรับแต่งการอ่าน">
+            <span className="reading-controls__label">ปรับการอ่าน</span>
+            <div className="reading-controls__size">
+              <button
+                type="button"
+                onClick={() => setReadingSettings((current) => ({
+                  ...current,
+                  fontSize: Math.max(16, current.fontSize - 2),
+                }))}
+                disabled={readingSettings.fontSize === 16}
+                aria-label="ลดขนาดตัวอักษร"
+              >
+                ก−
+              </button>
+              <output aria-live="polite" aria-label="ขนาดตัวอักษร">
+                {readingSettings.fontSize}px
+              </output>
+              <button
+                type="button"
+                onClick={() => setReadingSettings((current) => ({
+                  ...current,
+                  fontSize: Math.min(28, current.fontSize + 2),
+                }))}
+                disabled={readingSettings.fontSize === 28}
+                aria-label="เพิ่มขนาดตัวอักษร"
+              >
+                ก+
+              </button>
+            </div>
+            <button
+              type="button"
+              className="reading-controls__spacing"
+              onClick={() => setReadingSettings((current) => ({
+                ...current,
+                lineHeight: current.lineHeight === 1.8 ? 2 : 1.8,
+              }))}
+              aria-pressed={readingSettings.lineHeight === 2}
+              aria-label="ปรับระยะห่างบรรทัด"
+            >
+              ↕ <span>{readingSettings.lineHeight === 2 ? 'บรรทัดโปร่ง' : 'บรรทัดปกติ'}</span>
+            </button>
+            <button
+              type="button"
+              className="reading-controls__reset"
+              onClick={() => setReadingSettings(DEFAULT_READING_SETTINGS)}
+              disabled={
+                readingSettings.fontSize === DEFAULT_READING_SETTINGS.fontSize &&
+                readingSettings.lineHeight === DEFAULT_READING_SETTINGS.lineHeight
+              }
+            >
+              คืนค่า
+            </button>
+          </div>
           <h2>{SECTIONS.find((s) => s.key === activeSection)?.label}</h2>
-          <SectionContent sectionKey={activeSection} surgicalCase={surgicalCase} />
+          <div
+            className="case-reader__text"
+            style={{ fontSize: `${readingSettings.fontSize}px`, lineHeight: readingSettings.lineHeight }}
+          >
+            <SectionContent sectionKey={activeSection} surgicalCase={surgicalCase} />
+          </div>
         </main>
 
         <footer className="case-reader__footer">

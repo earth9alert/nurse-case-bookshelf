@@ -1,36 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #fdf6f9;
-  --bg-dark: #3b1f2b;
-  --surface: #fffcfe;
-  --text: #2a1a20;
-  --text-muted: #7a5a67;
-  --accent: #c2607a;
-  --accent-dark: #a04a62;
-  --accent-soft: #f7dde5;
+  --bg: #f4f6f9;
+  --bg-dark: #f4f6f9;
+  --surface: #ffffff;
+  --text: #263241;
+  --text-muted: #738094;
+  --accent: #cf6680;
+  --accent-dark: #b94e6a;
+  --accent-soft: #fcebf0;
   --wood: #b07a5a;
   --wood-light: #d4a882;
   --wood-dark: #7a4f35;
-  --shelf-shadow: rgba(59, 31, 43, 0.22);
-  --radius: 14px;
+  --shelf-shadow: rgba(31, 42, 58, 0.14);
+  --border: #e6eaf0;
+  --radius: 18px;
   --font: 'Sarabun', 'IBM Plex Sans Thai', system-ui, sans-serif;
 }
 
 /* ── Dark mode ── */
 [data-theme='dark'] {
-  --bg: #1a0f14;
-  --bg-dark: #2a1520;
-  --surface: #251419;
-  --text: #fce7f0;
-  --text-muted: #d6b5c8;
-  --accent: #e07a94;
-  --accent-dark: #c2607a;
-  --accent-soft: #4a2030;
+  --bg: #111821;
+  --bg-dark: #111821;
+  --surface: #1b2531;
+  --text: #e8edf4;
+  --text-muted: #a1adbd;
+  --accent: #e1849b;
+  --accent-dark: #d76d87;
+  --accent-soft: #3b2530;
   --wood: #c49a7a;
   --wood-light: #e0b895;
   --wood-dark: #a07050;
-  --shelf-shadow: rgba(0, 0, 0, 0.45);
+  --shelf-shadow: rgba(0, 0, 0, 0.32);
+  --border: #303b49;
 }
 
 *,
@@ -57,6 +59,14 @@ body {
 button {
   font-family: inherit;
   cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
 }
 
 input,
