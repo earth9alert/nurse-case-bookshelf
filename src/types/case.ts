@@ -16,7 +16,7 @@ export interface HandwritingPoint {
   y: number
 }
 
-export type HandwritingTool = 'pen' | 'eraser'
+export type HandwritingTool = 'pen' | 'highlighter' | 'eraser'
 
 export interface HandwritingStroke {
   tool: HandwritingTool
@@ -55,6 +55,7 @@ export interface SurgicalCase {
   annotations?: SectionAnnotations
   isFavorite?: boolean       // Feature 3: Favorites/Bookmarks
   personaNotes?: string      // Feature 7: Notes/Annotations
+  personalNoteStrokes?: HandwritingStroke[]
   templateId?: string        // Feature 10: Case Templates
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AnatomyImage, HandwritingTool } from '../types/case'
-import { HANDWRITING_PEN_COLORS } from '../utils/handwriting'
+import { DEFAULT_HIGHLIGHTER_COLOR, HANDWRITING_PEN_COLORS } from '../utils/handwriting'
 import {
   HandwritingCanvas,
   HandwritingToolbar,
@@ -32,6 +32,7 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
   const [imageWriting, setImageWriting] = useState(false)
   const [tool, setTool] = useState<HandwritingTool>('pen')
   const [penColor, setPenColor] = useState(HANDWRITING_PEN_COLORS[0].color)
+  const [highlighterColor, setHighlighterColor] = useState(DEFAULT_HIGHLIGHTER_COLOR)
   const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const pointerStart = useRef<{ pointerId: number; x: number; y: number } | null>(null)
@@ -328,13 +329,12 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
               <div className="anatomy-lightbox__annotation-tools">
                 <HandwritingToolbar
                   tool={tool}
-                  color={penColor}
+                  color={tool === 'highlighter' ? highlighterColor : penColor}
                   strokeCount={lightbox.annotations?.length ?? 0}
                   onToolChange={setTool}
-                  onColorChange={(nextColor) => {
-                    setPenColor(nextColor)
-                    setTool('pen')
-                  }}
+                  onColorChange={(nextColor) => tool === 'highlighter'
+                    ? setHighlighterColor(nextColor)
+                    : setPenColor(nextColor)}
                   onUndo={() => updateImageAnnotations((lightbox.annotations ?? []).slice(0, -1))}
                   onClear={() => {
                     if (

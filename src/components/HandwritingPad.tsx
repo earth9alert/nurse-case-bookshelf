@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { HandwritingPoint, HandwritingStroke, HandwritingTool } from '../types/case'
 import type { ReactNode } from 'react'
-import { HANDWRITING_PEN_COLORS } from '../utils/handwriting'
+import { DEFAULT_HIGHLIGHTER_COLOR, HANDWRITING_PEN_COLORS } from '../utils/handwriting'
 
 interface HandwritingPadProps {
   strokes: HandwritingStroke[]
@@ -46,6 +46,7 @@ function drawStroke(
 
   context.save()
   context.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over'
+  context.globalAlpha = stroke.tool === 'highlighter' ? 0.3 : 1
   context.strokeStyle = stroke.color
   context.fillStyle = stroke.color
   context.lineWidth = stroke.width * width
@@ -133,7 +134,7 @@ export function HandwritingCanvas({
     const nextStroke: HandwritingStroke = {
       tool,
       color,
-      width: tool === 'eraser' ? 0.03 : 0.004,
+      width: tool === 'eraser' ? 0.03 : tool === 'highlighter' ? 0.025 : 0.004,
       points: [point],
     }
     const canvas = event.currentTarget
@@ -233,6 +234,14 @@ export function HandwritingToolbar({
       >
         ✎ ปากกา
       </button>
+      <button
+        type="button"
+        className={tool === 'highlighter' ? 'is-active' : ''}
+        aria-pressed={tool === 'highlighter'}
+        onClick={() => onToolChange('highlighter')}
+      >
+        🖍 ไฮไลท์
+      </button>
       <div className="handwriting-pad__colors" role="group" aria-label="สีปากกา">
         {HANDWRITING_PEN_COLORS.map((penColor) => (
           <button
@@ -276,7 +285,9 @@ export function HandwritingToolbar({
 
 export function HandwritingPad({ strokes, onChange, isActive, children }: HandwritingPadProps) {
   const [tool, setTool] = useState<HandwritingTool>('pen')
-  const [color, setColor] = useState(HANDWRITING_PEN_COLORS[0].color)
+  const [penColor, setPenColor] = useState(HANDWRITING_PEN_COLORS[0].color)
+  const [highlighterColor, setHighlighterColor] = useState(DEFAULT_HIGHLIGHTER_COLOR)
+  const color = tool === 'highlighter' ? highlighterColor : penColor
 
   const clearAll = () => {
     if (strokes.length === 0 || !window.confirm('ล้างบันทึกลายมือทั้งหมดในหัวข้อนี้หรือไม่?')) return
@@ -291,10 +302,9 @@ export function HandwritingPad({ strokes, onChange, isActive, children }: Handwr
           color={color}
           strokeCount={strokes.length}
           onToolChange={setTool}
-          onColorChange={(nextColor) => {
-            setColor(nextColor)
-            setTool('pen')
-          }}
+          onColorChange={(nextColor) => tool === 'highlighter'
+            ? setHighlighterColor(nextColor)
+            : setPenColor(nextColor)}
           onUndo={() => onChange(strokes.slice(0, -1))}
           onClear={clearAll}
         />

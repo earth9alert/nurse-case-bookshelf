@@ -191,6 +191,8 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
   const [readSections, setReadSections] = useState<Set<SectionKey>>(new Set())
   const [readingSettings, setReadingSettings] = useState<ReadingSettings>(getInitialReadingSettings)
   const [isWritingOpen, setIsWritingOpen] = useState(false)
+  const [isNotesOpen, setIsNotesOpen] = useState(false)
+  const [noteMode, setNoteMode] = useState<'type' | 'write'>('type')
 
   useEffect(() => {
     try {
@@ -223,6 +225,12 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
     if (strokes.length > 0) annotations[activeSection] = strokes
     else delete annotations[activeSection]
     onUpdate({ ...surgicalCase, annotations })
+  }
+  const updatePersonalNoteStrokes = (strokes: HandwritingStroke[]) => {
+    const updatedCase = { ...surgicalCase }
+    if (strokes.length > 0) updatedCase.personalNoteStrokes = strokes
+    else delete updatedCase.personalNoteStrokes
+    onUpdate(updatedCase)
   }
 
   useEffect(() => {
@@ -367,7 +375,63 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
             >
               คืนค่า
             </button>
+            <button
+              type="button"
+              className="reading-controls__notes"
+              aria-expanded={isNotesOpen}
+              onClick={() => setIsNotesOpen((open) => !open)}
+            >
+              {isNotesOpen ? '✕ ปิดสมุดจด' : '📝 สมุดจด'}
+            </button>
           </div>
+          {isNotesOpen && (
+            <section className="case-personal-notes" aria-labelledby="personal-notes-title">
+              <header className="case-personal-notes__header">
+                <div>
+                  <h3 id="personal-notes-title">สมุดจดส่วนตัว</h3>
+                  <p>จดเพิ่มได้ทั้งแบบพิมพ์และเขียนด้วยมือ · บันทึกอัตโนมัติ</p>
+                </div>
+                <div className="case-personal-notes__modes" role="group" aria-label="วิธีจดบันทึก">
+                  <button
+                    type="button"
+                    className={noteMode === 'type' ? 'is-active' : ''}
+                    aria-pressed={noteMode === 'type'}
+                    onClick={() => setNoteMode('type')}
+                  >
+                    พิมพ์
+                  </button>
+                  <button
+                    type="button"
+                    className={noteMode === 'write' ? 'is-active' : ''}
+                    aria-pressed={noteMode === 'write'}
+                    onClick={() => setNoteMode('write')}
+                  >
+                    ✎ เขียน
+                  </button>
+                </div>
+              </header>
+              {noteMode === 'type' ? (
+                <div className="case-personal-notes__typed">
+                  <textarea
+                    value={surgicalCase.personaNotes ?? ''}
+                    maxLength={5000}
+                    onChange={(event) => onUpdate({ ...surgicalCase, personaNotes: event.target.value })}
+                    placeholder="พิมพ์บันทึกส่วนตัวของคุณที่นี่..."
+                    aria-label="บันทึกส่วนตัวแบบพิมพ์"
+                  />
+                  <span>{(surgicalCase.personaNotes ?? '').length}/5000</span>
+                </div>
+              ) : (
+                <HandwritingPad
+                  strokes={surgicalCase.personalNoteStrokes ?? []}
+                  onChange={updatePersonalNoteStrokes}
+                  isActive
+                >
+                  <div className="case-personal-notes__paper" aria-label="พื้นที่เขียนบันทึกด้วยมือ" />
+                </HandwritingPad>
+              )}
+            </section>
+          )}
           <h2>{SECTIONS.find((s) => s.key === activeSection)?.label}</h2>
           <section className="case-handwriting" aria-label="บันทึกลายมือประจำหัวข้อ">
             <button

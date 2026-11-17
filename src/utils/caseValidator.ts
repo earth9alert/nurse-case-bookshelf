@@ -77,7 +77,7 @@ const SECTION_KEYS: SectionKey[] = [
 function validateHandwritingStroke(raw: unknown): HandwritingStroke | null {
   if (typeof raw !== 'object' || raw === null) return null
   const stroke = raw as Record<string, unknown>
-  if (stroke.tool !== 'pen' && stroke.tool !== 'eraser') return null
+  if (stroke.tool !== 'pen' && stroke.tool !== 'highlighter' && stroke.tool !== 'eraser') return null
   if (!isValidColor(stroke.color)) return null
   if (typeof stroke.width !== 'number' || !Number.isFinite(stroke.width) || stroke.width <= 0 || stroke.width > 0.1) {
     return null
@@ -166,6 +166,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     images[key] = validateImageArray(fromNew)
   }
   const annotations = validateSectionAnnotations(o.annotations)
+  const personalNoteStrokes = validateHandwritingStrokes(o.personalNoteStrokes)
 
   // Back-compat: lift old flat fields into images map if new map is empty
   if (!images.anatomy?.length) {
@@ -215,5 +216,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     steps,
     images,
     ...(Object.keys(annotations).length > 0 ? { annotations } : {}),
+    ...(typeof o.personaNotes === 'string' ? { personaNotes: o.personaNotes } : {}),
+    ...(personalNoteStrokes.length > 0 ? { personalNoteStrokes } : {}),
   }
 }
