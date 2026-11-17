@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { sanitizeForDisplay } from '../utils/sanitizer'
 import { AnatomyGallery } from './AnatomyGallery'
 import { HandwritingPad } from './HandwritingPad'
-import { SECTIONS, type HandwritingStroke, type SectionKey, type SurgicalCase } from '../types/case'
+import { SECTIONS, type HandwritingStroke, type SectionKey, type SectionNote, type SurgicalCase } from '../types/case'
 
 const READING_SETTINGS_KEY = 'nurse-bookshelf-reading-settings'
 const DEFAULT_READING_SETTINGS = { fontSize: 18, lineHeight: 1.8 }
@@ -193,6 +193,7 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
   const [isWritingOpen, setIsWritingOpen] = useState(false)
   const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [noteMode, setNoteMode] = useState<'type' | 'write'>('type')
+  const [noteScope, setNoteScope] = useState<'section' | 'general'>('section')
 
   useEffect(() => {
     try {
@@ -210,6 +211,7 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
     (key: SectionKey) => {
       markRead(activeSection)
       setActiveSection(key)
+      setNoteScope('section')
     },
     [activeSection, markRead],
   )
@@ -220,6 +222,7 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
   }, [activeSection, markRead, onClose])
 
   const sectionStrokes = surgicalCase.annotations?.[activeSection] ?? []
+  const activeSectionNote = surgicalCase.sectionNotes?.[activeSection]
   const updateSectionStrokes = (strokes: HandwritingStroke[]) => {
     const annotations = { ...surgicalCase.annotations }
     if (strokes.length > 0) annotations[activeSection] = strokes
@@ -231,6 +234,30 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
     if (strokes.length > 0) updatedCase.personalNoteStrokes = strokes
     else delete updatedCase.personalNoteStrokes
     onUpdate(updatedCase)
+  }
+  const updateSectionNote = (changes: Partial<SectionNote>) => {
+    const sectionNotes = { ...surgicalCase.sectionNotes }
+    const currentNote = sectionNotes[activeSection] ?? { text: '' }
+    const nextNote = { ...currentNote, ...changes }
+    if (nextNote.text || nextNote.strokes?.length) sectionNotes[activeSection] = nextNote
+    else delete sectionNotes[activeSection]
+    onUpdate({ ...surgicalCase, sectionNotes })
+  }
+  const generalNoteStrokes = surgicalCase.personalNoteStrokes ?? []
+  const noteText = noteScope === 'general'
+    ? surgicalCase.personaNotes ?? ''
+    : activeSectionNote?.text ?? ''
+  const noteStrokes = noteScope === 'general'
+    ? generalNoteStrokes
+    : activeSectionNote?.strokes ?? []
+  const hasGeneralNotes = Boolean(surgicalCase.personaNotes || generalNoteStrokes.length > 0)
+  const updateNoteText = (text: string) => {
+    if (noteScope === 'general') onUpdate({ ...surgicalCase, personaNotes: text })
+    else updateSectionNote({ text })
+  }
+  const updateNoteStrokes = (strokes: HandwritingStroke[]) => {
+    if (noteScope === 'general') updatePersonalNoteStrokes(strokes)
+    else updateSectionNote(strokes.length > 0 ? { strokes } : { strokes: undefined })
   }
 
   useEffect(() => {
@@ -297,6 +324,8 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
           {SECTIONS.map((section, idx) => {
             const hasImages = (surgicalCase.images[section.key]?.length ?? 0) > 0
             const hasHandwriting = (surgicalCase.annotations?.[section.key]?.length ?? 0) > 0
+            const note = surgicalCase.sectionNotes?.[section.key]
+            const hasNotes = Boolean(note?.text || note?.strokes?.length)
             return (
               <button
                 key={section.key}
@@ -308,12 +337,13 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
                   {readSections.has(section.key) ? '✓' : idx + 1}
                 </span>
                 <span className="section-nav__label">{section.shortLabel}</span>
-                {(hasImages || hasHandwriting) && (
+                {(hasImages || hasHandwriting || hasNotes) && (
                   <span
                     className="section-nav__img-dot"
                     aria-label={[
                       hasImages ? 'มีรูป' : '',
                       hasHandwriting ? 'มีบันทึกลายมือ' : '',
+                      hasNotes ? 'มีสมุดจด' : '',
                     ].filter(Boolean).join(' และ ')}
                   />
                 )}
@@ -388,7 +418,11 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
             <section className="case-personal-notes" aria-labelledby="personal-notes-title">
               <header className="case-personal-notes__header">
                 <div>
-                  <h3 id="personal-notes-title">สมุดจดส่วนตัว</h3>
+                <h3 id="personal-notes-title">
+                  {noteScope === 'general'
+                    ? 'สมุดจดทั่วไป'
+                    : `สมุดจด — ${SECTIONS.find((section) => section.key === activeSection)?.label}`}
+                </h3>
                   <p>จดเพิ่มได้ทั้งแบบพิมพ์และเขียนด้วยมือ · บันทึกอัตโนมัติ</p>
                 </div>
                 <div className="case-personal-notes__modes" role="group" aria-label="วิธีจดบันทึก">
@@ -410,24 +444,46 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
                   </button>
                 </div>
               </header>
+              {(hasGeneralNotes || noteScope === 'general') && (
+                <div className="case-personal-notes__scope" role="group" aria-label="ขอบเขตสมุดจด">
+                  <button
+                    type="button"
+                    className={noteScope === 'section' ? 'is-active' : ''}
+                    aria-pressed={noteScope === 'section'}
+                    onClick={() => setNoteScope('section')}
+                  >
+                    ขั้นตอนนี้
+                  </button>
+                  <button
+                    type="button"
+                    className={noteScope === 'general' ? 'is-active' : ''}
+                    aria-pressed={noteScope === 'general'}
+                    onClick={() => setNoteScope('general')}
+                  >
+                    สมุดจดทั่วไป
+                  </button>
+                </div>
+              )}
               {noteMode === 'type' ? (
                 <div className="case-personal-notes__typed">
                   <textarea
-                    value={surgicalCase.personaNotes ?? ''}
+                    value={noteText}
                     maxLength={5000}
-                    onChange={(event) => onUpdate({ ...surgicalCase, personaNotes: event.target.value })}
-                    placeholder="พิมพ์บันทึกส่วนตัวของคุณที่นี่..."
-                    aria-label="บันทึกส่วนตัวแบบพิมพ์"
+                    onChange={(event) => updateNoteText(event.target.value)}
+                    placeholder={noteScope === 'general'
+                      ? 'พิมพ์บันทึกทั่วไปของคุณที่นี่...'
+                      : 'พิมพ์บันทึกสำหรับขั้นตอนนี้...'}
+                    aria-label="บันทึกแบบพิมพ์"
                   />
-                  <span>{(surgicalCase.personaNotes ?? '').length}/5000</span>
+                  <span>{noteText.length}/5000</span>
                 </div>
               ) : (
                 <HandwritingPad
-                  strokes={surgicalCase.personalNoteStrokes ?? []}
-                  onChange={updatePersonalNoteStrokes}
+                  strokes={noteStrokes}
+                  onChange={updateNoteStrokes}
                   isActive
                 >
-                  <div className="case-personal-notes__paper" aria-label="พื้นที่เขียนบันทึกด้วยมือ" />
+                  <div className="case-personal-notes__paper" aria-label={`พื้นที่เขียนบันทึก ${SECTIONS.find((section) => section.key === activeSection)?.label} ด้วยมือ`} />
                 </HandwritingPad>
               )}
             </section>

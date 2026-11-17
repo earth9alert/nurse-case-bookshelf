@@ -5,6 +5,7 @@ import type {
   SectionAnnotations,
   SectionImages,
   SectionKey,
+  SectionNotes,
   SurgicalCase,
 } from '../types/case'
 import { UNCATEGORIZED_ID } from '../types/case'
@@ -141,6 +142,28 @@ function validateSectionAnnotations(raw: unknown): SectionAnnotations {
   return annotations
 }
 
+function validateSectionNotes(raw: unknown): SectionNotes {
+  if (typeof raw !== 'object' || raw === null) return {}
+  const source = raw as Record<string, unknown>
+  const notes: SectionNotes = {}
+
+  for (const key of SECTION_KEYS) {
+    const rawNote = source[key]
+    if (typeof rawNote !== 'object' || rawNote === null) continue
+    const note = rawNote as Record<string, unknown>
+    const text = typeof note.text === 'string' ? note.text.slice(0, 5000) : ''
+    const strokes = validateHandwritingStrokes(note.strokes)
+    if (text || strokes.length > 0) {
+      notes[key] = {
+        text,
+        ...(strokes.length > 0 ? { strokes } : {}),
+      }
+    }
+  }
+
+  return notes
+}
+
 export function validateCase(raw: unknown): SurgicalCase | null {
   if (typeof raw !== 'object' || raw === null) return null
   const o = raw as Record<string, unknown>
@@ -166,6 +189,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     images[key] = validateImageArray(fromNew)
   }
   const annotations = validateSectionAnnotations(o.annotations)
+  const sectionNotes = validateSectionNotes(o.sectionNotes)
   const personalNoteStrokes = validateHandwritingStrokes(o.personalNoteStrokes)
 
   // Back-compat: lift old flat fields into images map if new map is empty
@@ -216,6 +240,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     steps,
     images,
     ...(Object.keys(annotations).length > 0 ? { annotations } : {}),
+    ...(Object.keys(sectionNotes).length > 0 ? { sectionNotes } : {}),
     ...(typeof o.personaNotes === 'string' ? { personaNotes: o.personaNotes } : {}),
     ...(personalNoteStrokes.length > 0 ? { personalNoteStrokes } : {}),
   }

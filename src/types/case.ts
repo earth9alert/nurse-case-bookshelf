@@ -35,6 +35,11 @@ export interface Category {
 // Images keyed by section — every section can have photos
 export type SectionImages = Partial<Record<SectionKey, AnatomyImage[]>>
 export type SectionAnnotations = Partial<Record<SectionKey, HandwritingStroke[]>>
+export interface SectionNote {
+  text: string
+  strokes?: HandwritingStroke[]
+}
+export type SectionNotes = Partial<Record<SectionKey, SectionNote>>
 
 export interface SurgicalCase {
   id: string
@@ -53,6 +58,7 @@ export interface SurgicalCase {
   steps: string              // rich text HTML (was string[] in older versions)
   images: SectionImages      // all section photos in one place
   annotations?: SectionAnnotations
+  sectionNotes?: SectionNotes
   isFavorite?: boolean       // Feature 3: Favorites/Bookmarks
   personaNotes?: string      // Feature 7: Notes/Annotations
   personalNoteStrokes?: HandwritingStroke[]

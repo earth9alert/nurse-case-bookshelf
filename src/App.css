@@ -3751,6 +3751,29 @@
   color: var(--accent-dark);
 }
 
+.case-personal-notes__scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.case-personal-notes__scope button {
+  min-height: 40px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.case-personal-notes__scope button.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
 .case-personal-notes__typed {
   position: relative;
 }
