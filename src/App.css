@@ -3673,6 +3673,10 @@
   cursor: crosshair;
 }
 
+.handwriting-pad__canvas.is-active.is-stylus-only {
+  touch-action: pan-x pan-y pinch-zoom;
+}
+
 .handwriting-pad__hint,
 .handwriting-pad__error {
   margin: 0.45rem 0 0;

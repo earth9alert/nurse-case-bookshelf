@@ -482,6 +482,7 @@ export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps)
                   strokes={noteStrokes}
                   onChange={updateNoteStrokes}
                   isActive
+                  stylusOnly
                 >
                   <div className="case-personal-notes__paper" aria-label={`พื้นที่เขียนบันทึก ${SECTIONS.find((section) => section.key === activeSection)?.label} ด้วยมือ`} />
                 </HandwritingPad>

@@ -7,6 +7,7 @@ interface HandwritingPadProps {
   strokes: HandwritingStroke[]
   onChange: (strokes: HandwritingStroke[]) => void
   isActive: boolean
+  stylusOnly?: boolean
   children: ReactNode
 }
 
@@ -21,6 +22,7 @@ interface HandwritingCanvasProps {
   isActive: boolean
   tool: HandwritingTool
   color: string
+  stylusOnly?: boolean
   surfaceClassName?: string
   children: ReactNode
 }
@@ -83,6 +85,7 @@ export function HandwritingCanvas({
   isActive,
   tool,
   color,
+  stylusOnly = false,
   surfaceClassName = '',
   children,
 }: HandwritingCanvasProps) {
@@ -126,6 +129,7 @@ export function HandwritingCanvas({
   }, [isActive, redraw])
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (stylusOnly && event.pointerType !== 'pen') return
     if (!event.isPrimary || activeStrokeRef.current) return
     event.preventDefault()
     event.stopPropagation()
@@ -195,8 +199,10 @@ export function HandwritingCanvas({
         {(isActive || strokes.length > 0) && (
           <canvas
             ref={canvasRef}
-            className={`handwriting-pad__canvas${isActive ? ' is-active' : ''}`}
-            aria-label={isActive ? 'เขียนบันทึกด้วย Apple Pencil หรือสัมผัส' : 'บันทึกลายมือ'}
+            className={`handwriting-pad__canvas${isActive ? ' is-active' : ''}${stylusOnly ? ' is-stylus-only' : ''}`}
+            aria-label={isActive
+              ? stylusOnly ? 'เขียนบันทึกด้วยปากกาสไตลัส' : 'เขียนบันทึกด้วย Apple Pencil หรือสัมผัส'
+              : 'บันทึกลายมือ'}
             aria-hidden={!isActive}
             tabIndex={isActive ? 0 : -1}
             onPointerDown={isActive ? handlePointerDown : undefined}
@@ -283,7 +289,7 @@ export function HandwritingToolbar({
   )
 }
 
-export function HandwritingPad({ strokes, onChange, isActive, children }: HandwritingPadProps) {
+export function HandwritingPad({ strokes, onChange, isActive, stylusOnly = false, children }: HandwritingPadProps) {
   const [tool, setTool] = useState<HandwritingTool>('pen')
   const [penColor, setPenColor] = useState(HANDWRITING_PEN_COLORS[0].color)
   const [highlighterColor, setHighlighterColor] = useState(DEFAULT_HIGHLIGHTER_COLOR)
@@ -315,12 +321,15 @@ export function HandwritingPad({ strokes, onChange, isActive, children }: Handwr
         isActive={isActive}
         tool={tool}
         color={color}
+        stylusOnly={stylusOnly}
       >
         {children}
       </HandwritingCanvas>
       {isActive && (
         <p className="handwriting-pad__hint">
-          เขียนทับบนเนื้อหาได้เลย · ปิดโหมดเขียนเพื่อกลับมาเลื่อนอ่าน
+          {stylusOnly
+            ? 'เขียนด้วยปากกาเท่านั้น · ใช้นิ้วเพื่อซูมหรือเลื่อนสมุด'
+            : 'เขียนทับบนเนื้อหาได้เลย · ปิดโหมดเขียนเพื่อกลับมาเลื่อนอ่าน'}
         </p>
       )}
     </div>
