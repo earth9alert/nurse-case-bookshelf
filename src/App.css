@@ -834,7 +834,7 @@
   height: 90vh;
   height: min(90vh, calc(100dvh - 2rem));
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
   gap: 0.75rem;
   align-items: center;
 }
@@ -859,19 +859,26 @@
   cursor: grabbing;
 }
 
-.anatomy-lightbox img {
+.anatomy-lightbox__image-layer {
   position: absolute;
-  inset: 0;
+  z-index: 1;
+  transform-origin: center;
+  transition: transform 0.15s ease-out;
+}
+
+.anatomy-lightbox__image {
   display: block;
   width: 100%;
   height: 100%;
-  max-width: none;
-  max-height: none;
-  object-fit: contain;
-  border-radius: 8px;
+  object-fit: fill;
   pointer-events: none;
   user-select: none;
-  transition: transform 0.15s ease-out;
+}
+
+.handwriting-pad__surface--image {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 .anatomy-lightbox__zoom-controls {
@@ -901,6 +908,28 @@
 .anatomy-lightbox__zoom-controls button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.anatomy-lightbox__zoom-controls button.is-annotating {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.anatomy-lightbox__annotation-tools {
+  width: 100%;
+  max-height: 24vh;
+  overflow: auto;
+}
+
+.anatomy-lightbox__annotation-tools .handwriting-pad__toolbar {
+  justify-content: center;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+
+.anatomy-lightbox__annotation-tools .handwriting-pad__autosave {
+  color: #f5f0e8;
 }
 
 .anatomy-lightbox__zoom-controls output {
@@ -3520,6 +3549,141 @@
   color: var(--text);
 }
 
+.case-handwriting {
+  margin: 0 0 0.75rem;
+}
+
+.case-handwriting__toggle {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.case-handwriting__toggle:hover {
+  background: var(--accent-soft);
+}
+
+.case-handwriting__count {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.handwriting-pad {
+  position: relative;
+}
+
+.handwriting-pad__surface {
+  position: relative;
+  isolation: isolate;
+  min-height: 280px;
+}
+
+.handwriting-pad__toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.handwriting-pad__toolbar > button {
+  min-height: 40px;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.handwriting-pad__toolbar > button.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.handwriting-pad__toolbar > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.handwriting-pad__colors {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.handwriting-pad__color {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--pen-color);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+}
+
+.handwriting-pad__color.is-active {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.handwriting-pad__autosave {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.handwriting-pad__canvas {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  touch-action: auto;
+  cursor: default;
+}
+
+.handwriting-pad__canvas.is-active {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.handwriting-pad__hint,
+.handwriting-pad__error {
+  margin: 0.45rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.handwriting-pad__error {
+  color: #b4233b;
+}
+
 .case-reader__header .btn-back {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -3585,6 +3749,27 @@
 
   .reading-controls button {
     min-height: 40px;
+  }
+
+  .handwriting-pad {
+    padding: 0;
+  }
+
+  .handwriting-pad__autosave {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .handwriting-pad__toolbar {
+    padding: 0.5rem;
+  }
+
+  .anatomy-lightbox__zoom-controls {
+    flex-wrap: wrap;
+  }
+
+  .anatomy-lightbox__annotation-tools .handwriting-pad__toolbar {
+    gap: 0.35rem;
   }
 }
 

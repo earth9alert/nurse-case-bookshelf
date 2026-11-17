@@ -76,7 +76,7 @@ export function AnatomyImageUpload({ images, label = '📷 อัปโหลด
           {loading ? 'กำลังอัปโหลด...' : label}
         </button>
         <span className="anatomy-upload__hint">
-          JPG, PNG, WebP, GIF · บีบอัดอัตโนมัติ
+          JPG, PNG, WebP, GIF · ลดขนาดไฟล์โดยคงความละเอียดสูง
           {images.length > 0 && ` · ${images.length}/20 รูป`}
         </span>
         <input

@@ -143,7 +143,7 @@ function App() {
               ←
             </button>
           )}
-          <span className="app-header__icon" aria-hidden="true">🌸</span>
+          <span className="app-header__icon" aria-hidden="true">📚</span>
           <div>
             <h1>ห้องสมุดของน้องสมาย</h1>
             <p>
@@ -375,6 +375,10 @@ function App() {
       {view === 'read' && selectedCase && (
         <CaseReader
           surgicalCase={selectedCase}
+          onUpdate={(updatedCase) => {
+            upsertCase(updatedCase)
+            setSelectedCase(updatedCase)
+          }}
           onClose={() => {
             setView('room')
             setSelectedCase(null)

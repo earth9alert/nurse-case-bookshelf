@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { sanitizeForDisplay } from '../utils/sanitizer'
 import { AnatomyGallery } from './AnatomyGallery'
-import { SECTIONS, type SectionKey, type SurgicalCase } from '../types/case'
+import { HandwritingPad } from './HandwritingPad'
+import { SECTIONS, type HandwritingStroke, type SectionKey, type SurgicalCase } from '../types/case'
 
 const READING_SETTINGS_KEY = 'nurse-bookshelf-reading-settings'
 const DEFAULT_READING_SETTINGS = { fontSize: 18, lineHeight: 1.8 }
@@ -11,6 +12,7 @@ type ReadingSettings = typeof DEFAULT_READING_SETTINGS
 
 interface CaseReaderProps {
   surgicalCase: SurgicalCase
+  onUpdate: (surgicalCase: SurgicalCase) => void
   onClose: () => void
 }
 
@@ -55,9 +57,11 @@ function formatUpdatedAt(iso: string): string {
 function SectionContent({
   sectionKey,
   surgicalCase,
+  onUpdateCase,
 }: {
   sectionKey: SectionKey
   surgicalCase: SurgicalCase
+  onUpdateCase: (surgicalCase: SurgicalCase) => void
 }) {
   const imgs = surgicalCase.images[sectionKey] ?? []
   // Map section key → gallery title
@@ -72,16 +76,32 @@ function SectionContent({
     steps:       'รูปประกอบ — Step',
   }
   const title = galleryTitle[sectionKey]
+  const gallery = (
+    <AnatomyGallery
+      images={imgs}
+      title={title}
+      onUpdateImage={(image) => {
+        const sectionImages = surgicalCase.images[sectionKey] ?? []
+        onUpdateCase({
+          ...surgicalCase,
+          images: {
+            ...surgicalCase.images,
+            [sectionKey]: sectionImages.map((existing) => existing.id === image.id ? image : existing),
+          },
+        })
+      }}
+    />
+  )
 
   switch (sectionKey) {
     case 'dx':
-      return <><TextBlock content={surgicalCase.dx} /><AnatomyGallery images={imgs} title={title} /></>
+      return <><TextBlock content={surgicalCase.dx} />{gallery}</>
     case 'operation':
-      return <><TextBlock content={surgicalCase.operation} /><AnatomyGallery images={imgs} title={title} /></>
+      return <><TextBlock content={surgicalCase.operation} />{gallery}</>
     case 'anatomy':
-      return <><TextBlock content={surgicalCase.anatomy} /><AnatomyGallery images={imgs} title={title} /></>
+      return <><TextBlock content={surgicalCase.anatomy} />{gallery}</>
     case 'roomSetup':
-      return <><TextBlock content={surgicalCase.roomSetup} /><AnatomyGallery images={imgs} title={title} /></>
+      return <><TextBlock content={surgicalCase.roomSetup} />{gallery}</>
     case 'equipment':
       return (
         <>
@@ -90,18 +110,18 @@ function SectionContent({
             <EquipmentList title="ของในห้องเวช" items={surgicalCase.equipment.room} icon="🏥" />
             <EquipmentList title="ของในตะกร้า" items={surgicalCase.equipment.basket} icon="🧺" />
           </div>
-          <AnatomyGallery images={imgs} title={title} />
+          {gallery}
         </>
       )
     case 'positioning':
-      return <><TextBlock content={surgicalCase.positioning} /><AnatomyGallery images={imgs} title={title} /></>
+      return <><TextBlock content={surgicalCase.positioning} />{gallery}</>
     case 'draping':
-      return <><TextBlock content={surgicalCase.draping} /><AnatomyGallery images={imgs} title={title} /></>
+      return <><TextBlock content={surgicalCase.draping} />{gallery}</>
     case 'steps':
       return (
         <>
           <TextBlock content={surgicalCase.steps} />
-          <AnatomyGallery images={imgs} title={title} />
+          {gallery}
         </>
       )
   }
@@ -166,10 +186,11 @@ function EquipmentList({ title, items, icon }: { title: string; items: string[];
   )
 }
 
-export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
+export function CaseReader({ surgicalCase, onUpdate, onClose }: CaseReaderProps) {
   const [activeSection, setActiveSection] = useState<SectionKey>('dx')
   const [readSections, setReadSections] = useState<Set<SectionKey>>(new Set())
   const [readingSettings, setReadingSettings] = useState<ReadingSettings>(getInitialReadingSettings)
+  const [isWritingOpen, setIsWritingOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -195,6 +216,14 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
     markRead(activeSection)
     onClose()
   }, [activeSection, markRead, onClose])
+
+  const sectionStrokes = surgicalCase.annotations?.[activeSection] ?? []
+  const updateSectionStrokes = (strokes: HandwritingStroke[]) => {
+    const annotations = { ...surgicalCase.annotations }
+    if (strokes.length > 0) annotations[activeSection] = strokes
+    else delete annotations[activeSection]
+    onUpdate({ ...surgicalCase, annotations })
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -259,6 +288,7 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
         <nav className="section-nav" aria-label="หัวข้อในเคส">
           {SECTIONS.map((section, idx) => {
             const hasImages = (surgicalCase.images[section.key]?.length ?? 0) > 0
+            const hasHandwriting = (surgicalCase.annotations?.[section.key]?.length ?? 0) > 0
             return (
               <button
                 key={section.key}
@@ -270,7 +300,15 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
                   {readSections.has(section.key) ? '✓' : idx + 1}
                 </span>
                 <span className="section-nav__label">{section.shortLabel}</span>
-                {hasImages && <span className="section-nav__img-dot" aria-label="มีรูป" />}
+                {(hasImages || hasHandwriting) && (
+                  <span
+                    className="section-nav__img-dot"
+                    aria-label={[
+                      hasImages ? 'มีรูป' : '',
+                      hasHandwriting ? 'มีบันทึกลายมือ' : '',
+                    ].filter(Boolean).join(' และ ')}
+                  />
+                )}
               </button>
             )
           })}
@@ -331,11 +369,34 @@ export function CaseReader({ surgicalCase, onClose }: CaseReaderProps) {
             </button>
           </div>
           <h2>{SECTIONS.find((s) => s.key === activeSection)?.label}</h2>
+          <section className="case-handwriting" aria-label="บันทึกลายมือประจำหัวข้อ">
+            <button
+              type="button"
+              className="case-handwriting__toggle"
+              aria-expanded={isWritingOpen}
+              onClick={() => setIsWritingOpen((open) => !open)}
+            >
+              <span>{isWritingOpen ? '✕ ปิดโหมดเขียน' : '✎ เขียนทับบนเนื้อหา'}</span>
+              {sectionStrokes.length > 0 && (
+                <span className="case-handwriting__count">{sectionStrokes.length} เส้น</span>
+              )}
+            </button>
+          </section>
           <div
-            className="case-reader__text"
+            className="case-reader__text case-reader__text--annotated"
             style={{ fontSize: `${readingSettings.fontSize}px`, lineHeight: readingSettings.lineHeight }}
           >
-            <SectionContent sectionKey={activeSection} surgicalCase={surgicalCase} />
+            <HandwritingPad
+              strokes={sectionStrokes}
+              onChange={updateSectionStrokes}
+              isActive={isWritingOpen}
+            >
+              <SectionContent
+                sectionKey={activeSection}
+                surgicalCase={surgicalCase}
+                onUpdateCase={onUpdate}
+              />
+            </HandwritingPad>
           </div>
         </main>
 

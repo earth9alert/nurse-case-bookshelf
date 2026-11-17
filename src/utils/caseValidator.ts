@@ -1,4 +1,12 @@
-import type { AnatomyImage, SectionImages, SectionKey, SurgicalCase } from '../types/case'
+import type {
+  AnatomyImage,
+  HandwritingPoint,
+  HandwritingStroke,
+  SectionAnnotations,
+  SectionImages,
+  SectionKey,
+  SurgicalCase,
+} from '../types/case'
 import { UNCATEGORIZED_ID } from '../types/case'
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/
@@ -45,7 +53,13 @@ function validateAnatomyImage(img: unknown): AnatomyImage | null {
   }
   
   if (!imageUrl) return null
-  return { id: o.id, caption: o.caption, imageUrl }
+  const annotations = validateHandwritingStrokes(o.annotations)
+  return {
+    id: o.id,
+    caption: o.caption,
+    imageUrl,
+    ...(annotations.length > 0 ? { annotations } : {}),
+  }
 }
 
 function validateImageArray(raw: unknown): AnatomyImage[] {
@@ -59,6 +73,73 @@ const SECTION_KEYS: SectionKey[] = [
   'dx', 'operation', 'anatomy', 'roomSetup',
   'equipment', 'positioning', 'draping', 'steps',
 ]
+
+function validateHandwritingStroke(raw: unknown): HandwritingStroke | null {
+  if (typeof raw !== 'object' || raw === null) return null
+  const stroke = raw as Record<string, unknown>
+  if (stroke.tool !== 'pen' && stroke.tool !== 'eraser') return null
+  if (!isValidColor(stroke.color)) return null
+  if (typeof stroke.width !== 'number' || !Number.isFinite(stroke.width) || stroke.width <= 0 || stroke.width > 0.1) {
+    return null
+  }
+  if (!Array.isArray(stroke.points) || stroke.points.length === 0 || stroke.points.length > 5000) return null
+
+  const points: HandwritingPoint[] = []
+  for (const rawPoint of stroke.points) {
+    if (typeof rawPoint !== 'object' || rawPoint === null) return null
+    const point = rawPoint as Record<string, unknown>
+    if (
+      typeof point.x !== 'number' ||
+      !Number.isFinite(point.x) ||
+      point.x < 0 ||
+      point.x > 1 ||
+      typeof point.y !== 'number' ||
+      !Number.isFinite(point.y) ||
+      point.y < 0 ||
+      point.y > 1
+    ) {
+      return null
+    }
+    points.push({ x: point.x, y: point.y })
+  }
+
+  return {
+    tool: stroke.tool,
+    color: stroke.color,
+    width: stroke.width,
+    points,
+  }
+}
+
+function validateHandwritingStrokes(raw: unknown): HandwritingStroke[] {
+  if (!Array.isArray(raw)) return []
+
+  const strokes: HandwritingStroke[] = []
+  let pointCount = 0
+  for (const rawStroke of raw) {
+    const stroke = validateHandwritingStroke(rawStroke)
+    if (!stroke || pointCount + stroke.points.length > 20_000) continue
+    strokes.push(stroke)
+    pointCount += stroke.points.length
+  }
+  return strokes
+}
+
+function validateSectionAnnotations(raw: unknown): SectionAnnotations {
+  if (typeof raw !== 'object' || raw === null) return {}
+  const source = raw as Record<string, unknown>
+  const annotations: SectionAnnotations = {}
+
+  for (const key of SECTION_KEYS) {
+    const rawStrokes = source[key]
+    if (!Array.isArray(rawStrokes)) continue
+
+    const strokes = validateHandwritingStrokes(rawStrokes)
+    if (strokes.length > 0) annotations[key] = strokes
+  }
+
+  return annotations
+}
 
 export function validateCase(raw: unknown): SurgicalCase | null {
   if (typeof raw !== 'object' || raw === null) return null
@@ -84,6 +165,7 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     const fromNew = rawImages[key]
     images[key] = validateImageArray(fromNew)
   }
+  const annotations = validateSectionAnnotations(o.annotations)
 
   // Back-compat: lift old flat fields into images map if new map is empty
   if (!images.anatomy?.length) {
@@ -132,5 +214,6 @@ export function validateCase(raw: unknown): SurgicalCase | null {
     draping: typeof o.draping === 'string' ? o.draping : '',
     steps,
     images,
+    ...(Object.keys(annotations).length > 0 ? { annotations } : {}),
   }
 }

@@ -8,6 +8,21 @@ export interface AnatomyImage {
   id: string
   caption: string
   imageUrl: string  // URL to image in Supabase Storage (was base64 dataUrl)
+  annotations?: HandwritingStroke[]
+}
+
+export interface HandwritingPoint {
+  x: number
+  y: number
+}
+
+export type HandwritingTool = 'pen' | 'eraser'
+
+export interface HandwritingStroke {
+  tool: HandwritingTool
+  color: string
+  width: number
+  points: HandwritingPoint[]
 }
 
 export interface Category {
@@ -19,6 +34,7 @@ export interface Category {
 
 // Images keyed by section — every section can have photos
 export type SectionImages = Partial<Record<SectionKey, AnatomyImage[]>>
+export type SectionAnnotations = Partial<Record<SectionKey, HandwritingStroke[]>>
 
 export interface SurgicalCase {
   id: string
@@ -36,6 +52,7 @@ export interface SurgicalCase {
   draping: string
   steps: string              // rich text HTML (was string[] in older versions)
   images: SectionImages      // all section photos in one place
+  annotations?: SectionAnnotations
   isFavorite?: boolean       // Feature 3: Favorites/Bookmarks
   personaNotes?: string      // Feature 7: Notes/Annotations
   templateId?: string        // Feature 10: Case Templates
