@@ -11,3 +11,9 @@ export const HANDWRITING_PEN_COLORS = [
 ]
 
 export const DEFAULT_HIGHLIGHTER_COLOR = '#ffeb3b'
+
+export function prefersStylusOnlyInput() {
+  if (typeof navigator === 'undefined') return false
+  return /iPad/.test(navigator.userAgent) ||
+    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+}

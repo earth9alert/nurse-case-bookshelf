@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AnatomyImage, HandwritingTool } from '../types/case'
-import { DEFAULT_HIGHLIGHTER_COLOR, HANDWRITING_PEN_COLORS } from '../utils/handwriting'
+import type { AnatomyImage, HandwritingStroke, HandwritingTool } from '../types/case'
+import {
+  DEFAULT_HIGHLIGHTER_COLOR,
+  HANDWRITING_PEN_COLORS,
+  prefersStylusOnlyInput,
+} from '../utils/handwriting'
 import {
   HandwritingCanvas,
   HandwritingToolbar,
@@ -33,6 +37,10 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
   const [tool, setTool] = useState<HandwritingTool>('pen')
   const [penColor, setPenColor] = useState(HANDWRITING_PEN_COLORS[0].color)
   const [highlighterColor, setHighlighterColor] = useState(DEFAULT_HIGHLIGHTER_COLOR)
+  const [penWidth, setPenWidth] = useState(4)
+  const [highlighterWidth, setHighlighterWidth] = useState(25)
+  const [stylusOnly, setStylusOnly] = useState(prefersStylusOnlyInput)
+  const redoHistory = useRef<HandwritingStroke[]>([])
   const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const pointerStart = useRef<{ pointerId: number; x: number; y: number } | null>(null)
@@ -42,6 +50,7 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
 
   const openLightbox = (image: AnatomyImage) => {
     setLightbox(image)
+    redoHistory.current = []
     setZoom(1)
     setPan({ x: 0, y: 0 })
     setNaturalSize(null)
@@ -50,6 +59,7 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
 
   const closeLightbox = useCallback(() => {
     setLightbox(null)
+    redoHistory.current = []
     setZoom(1)
     setPan({ x: 0, y: 0 })
     setImageWriting(false)
@@ -207,6 +217,19 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
     setLightbox(updatedImage)
     onUpdateImage(updatedImage)
   }
+  const undoImageAnnotation = () => {
+    const annotations = lightbox?.annotations ?? []
+    const lastStroke = annotations[annotations.length - 1]
+    if (!lastStroke) return
+    redoHistory.current.push(lastStroke)
+    updateImageAnnotations(annotations.slice(0, -1))
+  }
+  const redoImageAnnotation = () => {
+    const nextStroke = redoHistory.current.pop()
+    if (nextStroke) updateImageAnnotations([...(lightbox?.annotations ?? []), nextStroke])
+  }
+  const activeColor = tool === 'highlighter' ? highlighterColor : penColor
+  const activeWidth = tool === 'highlighter' ? highlighterWidth : penWidth
 
   if (images.length === 0) return null
 
@@ -267,10 +290,15 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
               >
                 <HandwritingCanvas
                   strokes={lightbox.annotations ?? []}
-                  onChange={updateImageAnnotations}
                   isActive={imageWriting}
                   tool={tool}
-                  color={penColor}
+                  color={activeColor}
+                  strokeWidth={activeWidth}
+                  stylusOnly={stylusOnly}
+                  onChange={(annotations) => {
+                    redoHistory.current = []
+                    updateImageAnnotations(annotations)
+                  }}
                   surfaceClassName="handwriting-pad__surface--image"
                 >
                   <img
@@ -329,18 +357,27 @@ export function AnatomyGallery({ images, title, onUpdateImage }: AnatomyGalleryP
               <div className="anatomy-lightbox__annotation-tools">
                 <HandwritingToolbar
                   tool={tool}
-                  color={tool === 'highlighter' ? highlighterColor : penColor}
+                  color={activeColor}
+                  strokeWidth={activeWidth}
+                  stylusOnly={stylusOnly}
                   strokeCount={lightbox.annotations?.length ?? 0}
                   onToolChange={setTool}
                   onColorChange={(nextColor) => tool === 'highlighter'
                     ? setHighlighterColor(nextColor)
                     : setPenColor(nextColor)}
-                  onUndo={() => updateImageAnnotations((lightbox.annotations ?? []).slice(0, -1))}
+                  onStrokeWidthChange={(nextWidth) => tool === 'highlighter'
+                    ? setHighlighterWidth(nextWidth)
+                    : setPenWidth(nextWidth)}
+                  onStylusOnlyChange={setStylusOnly}
+                  onUndo={undoImageAnnotation}
+                  onRedo={redoImageAnnotation}
+                  redoCount={redoHistory.current.length}
                   onClear={() => {
                     if (
                       lightbox.annotations?.length &&
                       window.confirm('ล้างบันทึกลายมือทั้งหมดบนรูปนี้หรือไม่?')
                     ) {
+                      redoHistory.current = []
                       updateImageAnnotations([])
                     }
                   }}

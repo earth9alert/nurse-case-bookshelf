@@ -101,7 +101,18 @@ function validateHandwritingStroke(raw: unknown): HandwritingStroke | null {
     ) {
       return null
     }
-    points.push({ x: point.x, y: point.y })
+    const pressure = point.pressure
+    if (
+      pressure !== undefined &&
+      (typeof pressure !== 'number' || !Number.isFinite(pressure) || pressure < 0 || pressure > 1)
+    ) {
+      return null
+    }
+    points.push({
+      x: point.x,
+      y: point.y,
+      ...(pressure === undefined ? {} : { pressure }),
+    })
   }
 
   return {

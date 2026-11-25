@@ -14,6 +14,7 @@ export interface AnatomyImage {
 export interface HandwritingPoint {
   x: number
   y: number
+  pressure?: number
 }
 
 export type HandwritingTool = 'pen' | 'highlighter' | 'eraser'
