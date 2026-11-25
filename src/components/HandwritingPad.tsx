@@ -165,8 +165,12 @@ export function HandwritingCanvas({
   }, [isActive, redraw])
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (stylusOnly && event.pointerType !== 'pen') return
-    if (!event.isPrimary || activeStrokeRef.current) return
+    if (stylusOnly && event.pointerType !== 'pen') {
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
+    if (activeStrokeRef.current || (!event.isPrimary && event.pointerType !== 'pen')) return
     event.preventDefault()
     event.stopPropagation()
 
@@ -430,7 +434,7 @@ export function HandwritingPad({ strokes, onChange, isActive, stylusOnly = false
       {isActive && (
         <p className="handwriting-pad__hint">
           {penOnly
-            ? 'เขียนด้วยปากกาเท่านั้น · ใช้นิ้วเพื่อเลื่อนหรือซูม'
+            ? 'เขียนด้วยปากกาเท่านั้น · ใช้นิ้วเลื่อนนอกพื้นที่เขียน'
             : 'เขียนด้วยปากกาหรือนิ้วได้ · ปิดโหมดเขียนเพื่อกลับมาเลื่อนอ่าน'}
         </p>
       )}

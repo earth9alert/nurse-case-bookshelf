@@ -3711,7 +3711,7 @@
 }
 
 .handwriting-pad__canvas.is-active.is-stylus-only {
-  touch-action: pan-x pan-y pinch-zoom;
+  touch-action: none;
 }
 
 .handwriting-pad__hint,
