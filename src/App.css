@@ -369,25 +369,27 @@
 .case-reader-overlay {
   position: fixed;
   inset: 0;
-  background: var(--bg-dark);
+  background: var(--bg);
   z-index: 100;
   overflow: auto;
 }
 
 .case-reader {
+  --reader-nav-height: 76px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
 .case-reader__header {
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, var(--bg-dark), #3d3225);
-  color: #f5f0e8;
+  padding: 1.15rem 1.5rem;
+  background: linear-gradient(120deg, #29394b, #55404b);
+  color: #fff;
+  border-bottom: 3px solid var(--accent);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .case-reader__title-block {
@@ -397,13 +399,21 @@
 
 .case-reader__title-block h1 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  line-height: 1.3;
 }
 
 .case-reader__title-block p {
   margin: 0.2rem 0 0;
-  opacity: 0.75;
-  font-size: 0.9rem;
+  color: #f3e7ed;
+  font-size: 0.95rem;
+}
+
+.case-reader__meta {
+  display: block;
+  margin-top: 0.35rem;
+  color: #e4dce2;
+  font-size: 0.78rem;
 }
 
 .read-progress {
@@ -432,10 +442,18 @@
 }
 
 .section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
-  gap: 4px;
-  padding: 0.75rem 1rem;
-  background: #3d3225;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--reader-nav-height);
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 4px 14px rgba(31, 42, 58, 0.08);
+  backdrop-filter: blur(12px);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -445,25 +463,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid transparent;
-  border-radius: 10px;
-  color: rgba(245, 240, 232, 0.7);
-  padding: 0.5rem 0.75rem;
-  min-width: 56px;
-  transition: all 0.15s;
+  justify-content: center;
+  gap: 0.1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  padding: 0.45rem 0.8rem;
+  min-width: 68px;
+  min-height: 56px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.section-nav__btn:hover:not(.active) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent-dark);
 }
 
 .section-nav__btn.active {
-  background: var(--surface);
-  color: var(--text);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   border-color: var(--accent);
 }
 
 .section-nav__btn.read:not(.active) {
-  border-color: #6bbf59;
-  color: #a8e6a0;
+  border-color: #9acb92;
+  background: #f3faf1;
+  color: #397b36;
 }
 
 .section-nav__num {
@@ -473,24 +500,30 @@
 
 .section-nav__label {
   font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .case-reader__content {
   flex: 1;
   background: var(--surface);
-  margin: 0;
-  padding: 1.5rem;
-  max-width: 800px;
-  width: 100%;
+  margin: 1.5rem auto 2rem;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  max-width: 900px;
+  width: calc(100% - 3rem);
   align-self: center;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 12px 35px rgba(31, 42, 58, 0.07);
 }
 
 .case-reader__content h2 {
-  margin: 0 0 1.25rem;
-  font-size: 1.2rem;
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
   color: var(--accent-dark);
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e8e4dc;
+  padding: 0.65rem 0.9rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(90deg, var(--accent-soft), transparent 85%);
 }
 
 .text-block p {
@@ -515,6 +548,13 @@
   color: var(--wood-dark);
 }
 
+.equipment-list {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
 .equipment-list ul {
   margin: 0;
   padding-left: 1.2rem;
@@ -532,7 +572,8 @@
 
 .steps-list li {
   margin-bottom: 0.65rem;
-  padding-left: 0.25rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
 }
 
 .steps-list li::marker {
@@ -544,11 +585,25 @@
   display: flex;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  background: #e8e4dc;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
   flex-wrap: wrap;
   justify-content: center;
   position: sticky;
   bottom: 0;
+  z-index: 20;
+  box-shadow: 0 -6px 20px rgba(31, 42, 58, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.case-reader__footer .btn-mark-read {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.case-reader__footer .btn-mark-read:disabled {
+  opacity: 0.75;
 }
 
 /* ── Editor ── */
@@ -1072,7 +1127,10 @@
 
   /* Case reader content */
   .case-reader__content {
-    padding: 1rem;
+    width: calc(100% - 1rem);
+    margin: 0.5rem auto 1rem;
+    padding: 1.1rem;
+    border-radius: 14px;
   }
 
   .case-reader__footer {
@@ -2624,6 +2682,11 @@
 [data-theme='dark'] .case-reader__content p { color: #fce7f0; }
 [data-theme='dark'] .case-reader__content li { color: #fce7f0; }
 [data-theme='dark'] .text-block p { color: #fce7f0; }
+[data-theme='dark'] .section-nav__btn.read:not(.active) {
+  border-color: #4b8055;
+  background: #223329;
+  color: #a8e6a0;
+}
 [data-theme='dark'] .steps-list li { color: #fce7f0; }
 [data-theme='dark'] .equipment-list li { color: #fce7f0; }
 [data-theme='dark'] .print-content { color: #fce7f0; }
@@ -3477,13 +3540,20 @@
 }
 
 .reading-controls {
+  position: sticky;
+  top: var(--reader-nav-height);
+  z-index: 25;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.9rem;
-  border-bottom: 1px solid var(--border);
+  margin: -0.5rem -0.75rem 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 6px 18px rgba(31, 42, 58, 0.06);
+  backdrop-filter: blur(12px);
 }
 
 .reading-controls__label {
@@ -3915,6 +3985,10 @@
 }
 
 @media (max-width: 600px) {
+  .case-reader {
+    --reader-nav-height: 68px;
+  }
+
   .reading-controls {
     gap: 0.4rem;
   }
